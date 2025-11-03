@@ -510,3 +510,6 @@ export const customizationOptions = {
     { name: 'Sugar-Free', priceModifier: 1, available: true }
   ]
 }; 
+
+export { menuData };
+export default menuData; 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { getAllCategories } from '@/lib/menuData';
 import { ChevronRight, Coffee, Sparkles, Heart, Utensils, Home } from 'lucide-react';
@@ -14,12 +14,12 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const categories = getAllCategories();
 
-  // Using a constant for hero images as it doesn't change
-  const heroImages = [
+  // Using useMemo for hero images to prevent re-creation on every render
+  const heroImages = useMemo(() => [
     '/images/Hero Items/1.svg',
     '/images/Hero Items/2.svg',
     '/images/Hero Items/3.svg'
-  ];
+  ], []);
 
   const renderIcon = (iconName: string) => {
     const iconProps = { className: "w-5 h-5" };

@@ -1,36 +1,262 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Elite Coffee Shop - Full Stack Application
 
-## Getting Started
+A modern, full-stack coffee shop web application built with Next.js 15, TypeScript, and JSON file-based storage.
 
-First, run the development server:
+## 🏗️ Project Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+elite-coffee-shop/
+├── data/                   # JSON database
+│   └── database.json      # Persistent storage
+├── public/                 # Static assets
+│   └── images/            # Images
+├── src/
+│   ├── app/               # Next.js App Router
+│   │   ├── api/           # API routes
+│   │   │   ├── menu/      # Menu endpoints
+│   │   │   ├── cart/      # Cart endpoints
+│   │   │   └── orders/    # Order endpoints
+│   │   ├── menu/          # Menu pages
+│   │   ├── rewards/       # Rewards page
+│   │   └── shop/          # Shop page
+│   ├── components/        # React components
+│   ├── contexts/          # React contexts
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Utility libraries
+│   ├── server/            # Backend logic
+│   │   └── utils/         # Server utilities (JSON database, API helpers)
+│   └── types/             # TypeScript types
+└── ...config files
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Current Features
+- ✅ Menu browsing with categories and subcategories
+- ✅ Product details with customization options
+- ✅ Shopping cart functionality
+- ✅ Order management system
+- ✅ RESTful API endpoints
+- ✅ JSON file-based persistent storage
+- ✅ TypeScript for type safety
+- ✅ Responsive design with Tailwind CSS
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Backend Architecture
+- **API Routes**: RESTful API endpoints using Next.js Route Handlers
+- **Data Storage**: JSON file-based database (no PostgreSQL needed!)
+- **Type Safety**: Full TypeScript support across frontend and backend
 
-## Learn More
+### Planned Features
+- 🔄 User authentication (JWT)
+- 🔄 Payment integration
+- 🔄 Order tracking
+- 🔄 Reviews and ratings
+- 🔄 Rewards program
+- 🔄 Admin dashboard
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Frontend
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion, GSAP
+- **UI Components**: Custom components with class-variance-authority
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Backend
+- **Runtime**: Node.js
+- **Database**: JSON File Storage (no setup required!)
+- **API**: Next.js Route Handlers
+- **Type Safety**: TypeScript
 
-## Deploy on Vercel
+## 🛠️ Setup Instructions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
+- Node.js 18+ or Bun
+- Git
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd elite-coffee-shop
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
+
+3. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📚 API Documentation
+
+### Menu Endpoints
+
+#### Get All Categories
+```http
+GET /api/menu
+```
+
+#### Get Category by Slug
+```http
+GET /api/menu/[category]
+```
+
+#### Get Menu Item by Slug
+```http
+GET /api/menu/items/[slug]
+```
+
+### Cart Endpoints
+
+#### Get Cart
+```http
+GET /api/cart
+Headers: x-user-id: <user-id>
+```
+
+#### Add to Cart
+```http
+POST /api/cart
+Headers: x-user-id: <user-id>
+Content-Type: application/json
+
+{
+  "menuItemId": "string",
+  "quantity": number,
+  "size": "string",
+  "flavor": "string",
+  "toppings": ["string"]
+}
+```
+
+#### Clear Cart
+```http
+DELETE /api/cart
+Headers: x-user-id: <user-id>
+```
+
+### Order Endpoints
+
+#### Get User Orders
+```http
+GET /api/orders
+Headers: x-user-id: <user-id>
+```
+
+#### Create Order
+```http
+POST /api/orders
+Headers: x-user-id: <user-id>
+Content-Type: application/json
+
+{
+  "paymentMethod": "CASH" | "CARD" | "WALLET" | "ONLINE",
+  "addressId": "string",
+  "notes": "string"
+}
+```
+
+#### Get Order by ID
+```http
+GET /api/orders/[id]
+Headers: x-user-id: <user-id>
+```
+
+## 🗄️ Database Schema
+
+### Main Models
+- **User**: Customer accounts and authentication
+- **Category**: Menu categories
+- **SubCategory**: Menu subcategories
+- **MenuItem**: Individual menu items
+- **Size/Flavor/Topping**: Customization options
+- **Cart/CartItem**: Shopping cart
+- **Order/OrderItem**: Order management
+- **Review**: Product reviews
+- **Reward**: Loyalty program
+- **Address**: User addresses
+
+## 🔧 Available Scripts
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run build            # Build for production
+npm run start            # Start production server
+npm run lint             # Run ESLint
+npm run format           # Format code with Biome
+
+# Database
+npm run db:generate      # Generate Prisma Client
+npm run db:push          # Push schema to database
+npm run db:migrate       # Run migrations
+npm run db:seed          # Seed database
+npm run db:studio        # Open Prisma Studio
+```
+
+## 🏗️ Development Workflow
+
+1. **Make changes** to your code
+2. **Run linter**: `npm run lint`
+3. **Format code**: `npm run format`
+4. **Test locally**: `npm run dev`
+5. **Build**: `npm run build`
+6. **Commit** your changes
+
+## 📝 Code Style
+
+- TypeScript for type safety
+- ESLint for code quality
+- Biome for code formatting
+- Follow the existing project structure
+
+## 🔐 Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_APP_URL` | Application URL | No |
+| `NODE_ENV` | Environment (development/production) | No |
+
+**Note**: No database connection string needed! The app uses JSON file storage.
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🆘 Troubleshooting
+
+### Data Issues
+- Check `data/database.json` file exists
+- Reset database: `npm run db:reset`
+- Verify file permissions
+
+### Build Errors
+```bash
+# Clear Next.js cache
+rm -rf .next
+
+# Reinstall dependencies
+rm -rf node_modules
+npm install
+```
+
+## 📞 Support
+
+For issues and questions, please contact the development team.

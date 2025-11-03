@@ -70,19 +70,21 @@ export default function ItemDetailClient({
     let total = item.price;
     
     // Add size modifier
-    if (selectedSize) {
+    if (selectedSize && item.sizes) {
       const size = item.sizes.find(s => s.name === selectedSize);
       if (size) total += size.priceModifier;
     }
     
     // Add toppings
-    selectedToppings.forEach(toppingName => {
-      const topping = item.toppings.find(t => t.name === toppingName);
-      if (topping) total += topping.price;
-    });
+    if (item.toppings) {
+      (selectedToppings || []).forEach(toppingName => {
+        const topping = item.toppings?.find(t => t.name === toppingName);
+        if (topping) total += topping.price;
+      });
+    }
     
     // Add flavor
-    if (selectedFlavor) {
+    if (selectedFlavor && item.flavors) {
       const flavor = item.flavors.find(f => f.name === selectedFlavor);
       if (flavor) total += flavor.price;
     }
@@ -91,7 +93,7 @@ export default function ItemDetailClient({
   };
 
   const hasMultipleSizes = () => {
-    return item.sizes.length > 1;
+    return item.sizes && item.sizes.length > 1;
   };
 
   const nextImage = () => {
@@ -107,11 +109,12 @@ export default function ItemDetailClient({
   };
 
   const toggleTopping = (toppingName: string) => {
-    setSelectedToppings(prev => 
-      prev.includes(toppingName) 
-        ? prev.filter(t => t !== toppingName)
-        : [...prev, toppingName]
-    );
+    setSelectedToppings(prev => {
+      const current = prev || [];
+      return current.includes(toppingName) 
+        ? current.filter(t => t !== toppingName)
+        : [...current, toppingName];
+    });
   };
 
   // Don't render until client-side to prevent hydration issues
@@ -246,8 +249,8 @@ export default function ItemDetailClient({
                   Choose Your Size
                 </h3>
                 
-                                 <div className="grid grid-cols-3 gap-3">
-                   {item.sizes.map((size) => {
+                <div className="grid grid-cols-3 gap-3">
+                   {(item.sizes || []).map((size) => {
                      const sizePrice = item.price + size.priceModifier;
                      return (
                        <button
@@ -280,7 +283,7 @@ export default function ItemDetailClient({
             )}
 
             {/* Flavor Options - Only if flavors exist */}
-            {item.flavors.length > 0 && (
+            {item.flavors && item.flavors.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="font-calistoga text-elite-burgundy text-xl mb-4">
                   Choose Your Flavor
@@ -310,8 +313,8 @@ export default function ItemDetailClient({
               </div>
             )}
 
-            {/* Topping Options - Only if toppings exist */}
-            {item.toppings.length > 0 && (
+            {/* Toppings - Only if toppings exist */}
+            {item.toppings && item.toppings.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="font-calistoga text-elite-burgundy text-xl mb-4">
                   Add Toppings
@@ -324,7 +327,7 @@ export default function ItemDetailClient({
                       onClick={() => toggleTopping(topping.name)}
                       disabled={!topping.available}
                       className={`p-4 rounded-xl font-cabin font-medium transition-all duration-300 text-center ${
-                        selectedToppings.includes(topping.name)
+                        (selectedToppings || []).includes(topping.name)
                           ? 'bg-elite-burgundy text-elite-cream shadow-lg'
                           : topping.available
                           ? 'bg-elite-cream text-elite-burgundy hover:bg-elite-burgundy hover:text-elite-cream border border-elite-burgundy/20'
