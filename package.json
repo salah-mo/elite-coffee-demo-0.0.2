@@ -1,13 +1,14 @@
 {
-  "name": "nextjs-tailwind",
-  "version": "0.1.0",
+  "name": "elite-coffee-shop",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "bunx tsc --noEmit && next lint",
-    "format": "bunx biome format --write"
+    "lint": "npx tsc --noEmit && next lint",
+    "format": "npx biome format --write",
+    "db:reset": "echo {\"carts\":{},\"orders\":[]} > data/database.json && echo Database reset complete!"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
