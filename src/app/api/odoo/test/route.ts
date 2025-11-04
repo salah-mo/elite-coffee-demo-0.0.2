@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server';
 import { createOdooClient, isOdooConfigured } from '@/server/utils/odooClient';
 import { jsonResponse, successResponse, errorResponse } from '@/server/utils/apiHelpers';

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosInstance } from 'axios';
 import https from 'node:https';
 import type { Order, OrderItem } from '@/types';
