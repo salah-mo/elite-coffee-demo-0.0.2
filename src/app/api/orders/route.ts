@@ -9,6 +9,8 @@ import {
   getQueryParams
 } from '@/server/utils/apiHelpers';
 import { PaymentMethod, OrderStatus, PaymentStatus } from '@/types';
+import { createOrderSchema } from '@/server/validators/orderSchemas';
+import { BadRequestError } from '@/server/utils/errors';
 
 /**
  * GET /api/orders
@@ -39,19 +41,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id') || 'demo-user';
-    const body = await parseRequestBody<{
-      paymentMethod: PaymentMethod;
-      addressId?: string;
-      notes?: string;
-    }>(request);
+    const raw = await parseRequestBody(request);
+    const body = createOrderSchema.parse(raw);
 
     const cartItems = cartDB.get(userId);
 
     if (!cartItems || cartItems.length === 0) {
-      return jsonResponse(
-        { success: false, error: 'Cart is empty' },
-        400
-      );
+      throw new BadRequestError('Cart is empty');
     }
 
     // Calculate totals
@@ -114,6 +110,9 @@ export async function POST(request: NextRequest) {
 
     return jsonResponse(successResponse(order, 'Order created successfully'), 201);
   } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return handleApiError(new BadRequestError('Invalid request body'));
+    }
     return handleApiError(error);
   }
 }

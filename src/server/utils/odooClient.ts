@@ -30,7 +30,7 @@ export function isOdooConfigured(): boolean {
     process.env.ODOO_HOST &&
     process.env.ODOO_DB &&
     process.env.ODOO_USERNAME &&
-    process.env.ODOO_PASSWORD
+    (process.env.ODOO_API_KEY || process.env.ODOO_PASSWORD)
   );
 }
 
@@ -259,7 +259,7 @@ export class OdooClient {
     });
 
     const lines: any[] = [];
-    for (const line of websiteOrder.items) {
+  for (const line of websiteOrder.items) {
       const productId = await this.findOrCreateProduct({
         menuItemId: line.menuItemId,
         unitPrice: line.unitPrice,
@@ -304,6 +304,188 @@ export class OdooClient {
     // action_confirm expects a list of IDs
     await this.rpc('sale.order', 'action_confirm', [[saleId]]);
     return true;
+  }
+
+  // -----------------------------
+  // POS helpers (for Kitchen Display)
+  // -----------------------------
+
+  /** Get minimal list of POS configs */
+  async getPosConfigs(): Promise<Array<{ id: number; name: string }>> {
+    return this.searchRead('pos.config', [['active', '=', true]], ['id', 'name']);
+  }
+
+  /** Get an open POS session for a given config (if any) */
+  async getOpenPosSession(configId: number): Promise<number | null> {
+    const ids = await this.rpc<number[]>(
+      'pos.session',
+      'search',
+      [[['config_id', '=', configId], ['state', '=', 'opened']]],
+      { limit: 1 }
+    );
+    return ids?.length ? ids[0] : null;
+  }
+
+  /** Ensure the given product can be sold in POS (available_in_pos on product template) */
+  private async ensureProductAvailableInPOS(productId: number): Promise<void> {
+    try {
+      const prod = await this.searchRead<any>('product.product', [['id', '=', productId]], ['id', 'product_tmpl_id', 'available_in_pos']);
+      if (!prod?.length) return;
+      const tmplId = Array.isArray(prod[0].product_tmpl_id) ? prod[0].product_tmpl_id[0] : prod[0].product_tmpl_id;
+      const available = Boolean(prod[0].available_in_pos);
+      if (!available && tmplId) {
+        await this.rpc('product.template', 'write', [[tmplId], { available_in_pos: true }]);
+      }
+    } catch (_) {
+      // non-fatal
+    }
+  }
+
+  /**
+   * Create a POS Order using create_from_ui so it appears in POS/Kitchen Display.
+   * Requirements:
+   * - POS module installed (pos.order model exists)
+   * - An open POS session for the chosen configuration
+   */
+  async createPosOrderFromWebsiteOrder(
+    websiteOrder: Order,
+    partnerHint: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      street?: string;
+      city?: string;
+      zip?: string;
+    },
+    options?: { posConfigId?: number; posConfigName?: string; customerNotePerLine?: string }
+  ): Promise<number> {
+    // Select POS config
+    let configId: number | undefined = options?.posConfigId;
+    if (!configId) {
+      if (options?.posConfigName) {
+        const cfg = await this.searchRead<any>('pos.config', [['name', '=', options.posConfigName]], ['id', 'name'], { limit: 1 });
+        if (cfg?.length) configId = cfg[0].id;
+      }
+      if (!configId) {
+        const cfgs = await this.getPosConfigs();
+        if (!cfgs?.length) throw new Error('No POS configuration found (install and configure Point of Sale)');
+        configId = cfgs[0].id;
+      }
+    }
+
+    // Find an open POS session
+    const sessionId = await this.getOpenPosSession(configId);
+    if (!sessionId) {
+      throw new Error('No open POS session found. Open a POS session in Odoo to send orders to the kitchen.');
+    }
+
+    // Partner
+    const partnerId = await this.findOrCreatePartner({
+      name: partnerHint?.name || `Website User ${websiteOrder.userId}`,
+      email: partnerHint?.email,
+      phone: partnerHint?.phone,
+      street: partnerHint?.street,
+      city: partnerHint?.city,
+      zip: partnerHint?.zip,
+    });
+
+    // Build POS order lines
+    const lines: any[] = [];
+    for (const line of websiteOrder.items) {
+      const productId = await this.findOrCreateProduct({
+        menuItemId: line.menuItemId,
+        unitPrice: line.unitPrice,
+        menuItem: line.menuItem,
+      });
+      await this.ensureProductAvailableInPOS(productId);
+
+      const customer_note = options?.customerNotePerLine || websiteOrder.notes || undefined;
+      lines.push([
+        0,
+        0,
+        {
+          product_id: productId,
+          qty: line.quantity,
+          price_unit: line.unitPrice,
+          discount: 0,
+          ...(customer_note ? { customer_note } : {}),
+        },
+      ]);
+    }
+
+    const amount_total = websiteOrder.items.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const uid = `webpos_${websiteOrder.id}`;
+
+    const orderData: any = {
+      uid,
+      to_invoice: false,
+      data: {
+        name: websiteOrder.orderNumber,
+        partner_id: partnerId,
+        pos_session_id: sessionId,
+        sequence_number: 1,
+        lines,
+        amount_total,
+        amount_tax: 0,
+        amount_paid: 0,
+        amount_return: 0,
+        note: websiteOrder.notes || undefined,
+      },
+    };
+
+    // Try modern/newer APIs first, then fall back
+    const tryMethods: Array<{ name: string; payload: any[] }> = [
+      { name: 'create_orders_from_ui', payload: [[orderData]] },
+      { name: 'create_from_ui', payload: [[orderData]] },
+    ];
+
+    let lastErr: any;
+    for (const m of tryMethods) {
+      try {
+        const res = await this.rpc<any>('pos.order', m.name, m.payload);
+        let createdId: number | undefined;
+        if (Array.isArray(res)) {
+          createdId = typeof res[0] === 'number' ? res[0] : res[0]?.id;
+        } else if (typeof res === 'number') {
+          createdId = res;
+        } else if (res && typeof res === 'object' && 'id' in res) {
+          createdId = (res as any).id;
+        }
+        if (createdId) return createdId;
+        lastErr = new Error(`Unexpected response from POS ${m.name}: ${JSON.stringify(res)}`);
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+
+    // Last resort: try direct record creation (may not trigger KDS live events)
+    try {
+      const orderId = await this.rpc<number>('pos.order', 'create', [[{
+        partner_id: partnerId,
+        session_id: sessionId,
+        amount_total,
+        amount_tax: 0,
+        amount_paid: 0,
+        amount_return: 0,
+      }]]);
+
+      // Create lines directly
+      for (const l of lines) {
+        const base = (l[2] as any);
+        const vals = {
+          order_id: orderId,
+          product_id: base.product_id,
+          qty: base.qty,
+          price_unit: base.price_unit,
+          discount: base.discount ?? 0,
+          ...(base.customer_note ? { customer_note: base.customer_note } : {}),
+        } as any;
+        await this.rpc('pos.order.line', 'create', [[vals]]);
+      }
+      return orderId;
+    } catch (fallbackErr) {
+      throw new Error(`Failed to create POS order via RPC methods (create_orders_from_ui/create_from_ui) and direct create. Last error: ${lastErr?.message || String(lastErr)} | Fallback error: ${(fallbackErr as any)?.message || String(fallbackErr)}`);
+    }
   }
 }
 

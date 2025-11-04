@@ -7,6 +7,8 @@ import {
   handleApiError,
   parseRequestBody 
 } from '@/server/utils/apiHelpers';
+import { addToCartSchema } from '@/server/validators/cartSchemas';
+import { BadRequestError, NotFoundError } from '@/server/utils/errors';
 import type { CartItem } from '@/types';
 
 /**
@@ -42,14 +44,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id') || 'demo-user';
-    const body = await parseRequestBody<{
-      menuItemId: string;
-      quantity: number;
-      size?: string;
-      flavor?: string;
-      toppings?: string[];
-    }>(request);
-
+    const raw = await parseRequestBody(request);
+    const body = addToCartSchema.parse(raw);
     const { menuItemId, quantity, size, flavor, toppings } = body;
 
     // Find menu item
@@ -65,12 +61,7 @@ export async function POST(request: NextRequest) {
       if (menuItem) break;
     }
 
-    if (!menuItem) {
-      return jsonResponse(
-        { success: false, error: 'Menu item not found' },
-        404
-      );
-    }
+    if (!menuItem) throw new NotFoundError('Menu item not found');
 
     // Calculate price
     let price = menuItem.price;
@@ -107,6 +98,10 @@ export async function POST(request: NextRequest) {
 
     return jsonResponse(successResponse(cartItem, 'Item added to cart'), 201);
   } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      // zod error
+      return handleApiError(new BadRequestError('Invalid request body'));
+    }
     return handleApiError(error);
   }
 }

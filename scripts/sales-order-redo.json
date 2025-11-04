@@ -1,0 +1,12 @@
+{
+  "partner": { "name": "API Customer", "email": "api@example.com" },
+  "items": [
+    { "menuItemId": "WATER", "name": "Water", "quantity": 4, "unitPrice": 10 },
+    { "menuItemId": "MOCHA", "name": "Mocha", "quantity": 2, "unitPrice": 45 },
+    { "menuItemId": "REDTEA", "name": "Red Tea", "quantity": 3, "unitPrice": 20 }
+  ],
+  "notes": "Redo order (4 water, 2 mocha, 3 red tea)",
+  "autoConfirm": true,
+  "orderNumber": "WEB-SALES-REDO-4W-2M-3RT",
+  "userId": "website-user"
+}

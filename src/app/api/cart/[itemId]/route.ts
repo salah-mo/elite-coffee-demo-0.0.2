@@ -6,6 +6,8 @@ import {
   handleApiError,
   parseRequestBody 
 } from '@/server/utils/apiHelpers';
+import { updateCartItemSchema } from '@/server/validators/cartSchemas';
+import { BadRequestError } from '@/server/utils/errors';
 
 /**
  * DELETE /api/cart/[itemId]
@@ -38,21 +40,16 @@ export async function PATCH(
   try {
     const userId = request.headers.get('x-user-id') || 'demo-user';
     const { itemId } = await params;
-    const body = await parseRequestBody<{ quantity: number }>(request);
-
-    const { quantity } = body;
-
-    if (quantity < 1) {
-      return jsonResponse(
-        { success: false, error: 'Quantity must be at least 1' },
-        400
-      );
-    }
+    const raw = await parseRequestBody(request);
+    const { quantity } = updateCartItemSchema.parse(raw);
 
     cartDB.updateQuantity(userId, itemId, quantity);
 
     return jsonResponse(successResponse(null, 'Cart item updated'));
   } catch (error) {
+    if (error instanceof Error && 'issues' in error) {
+      return handleApiError(new BadRequestError('Invalid request body'));
+    }
     return handleApiError(error);
   }
 }

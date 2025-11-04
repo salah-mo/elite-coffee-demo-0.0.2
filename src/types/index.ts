@@ -25,6 +25,9 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   message?: string;
+  // Optional machine-readable error code and HTTP status for richer clients
+  code?: string;
+  status?: number;
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {

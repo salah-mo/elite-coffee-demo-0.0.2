@@ -1,6 +1,6 @@
 # Odoo Integration (JSON-RPC)
 
-This guide explains how this project integrates with Odoo so website orders are created in Odoo's Sales module (`sale.order`).
+This guide explains how this project integrates with Odoo so website orders are created in Odoo's Sales module (`sale.order`) and, optionally, in Point of Sale (`pos.order`) to appear on the Kitchen Display.
 
 ## What’s in this repo
 
@@ -14,12 +14,15 @@ This guide explains how this project integrates with Odoo so website orders are 
   - Create order: `POST /api/odoo/orders` → creates quotation; optional confirmation
   - Test order: `POST /api/odoo/order-test` → minimal single-item test
   - List products: `GET /api/odoo/products` → supports random sampling, field selection
+  - POS diagnostics: `GET /api/odoo/pos` → pos.configs and open sessions
+  - Create POS order: `POST /api/odoo/pos/orders` → creates `pos.order` via `create_from_ui` so it shows in Kitchen Display
 
 ## Prerequisites
 
 1. Odoo Online or On‑Prem reachable over HTTPS.
 2. Database name (e.g. `mydb`).
 3. A user with permissions for `res.partner`, `product.product`, and `sale.order` (Sales app must be installed).
+4. For Kitchen Display: install and configure Point of Sale (Restaurant) and open a POS session. Products must be available in POS.
 
 ## Environment variables
 
@@ -126,6 +129,55 @@ Query params:
 - `fields`: comma-separated fields (default: id,name,default_code,list_price,type,active)
 
 No hidden default limit: if you omit `limit` and `random=false`, it returns all matching products.
+
+### POS diagnostics
+GET `/api/odoo/pos`
+
+Response:
+```
+{
+  "success": true,
+  "data": {
+    "configured": true,
+    "ping": { "uid": 2, "partnerCount": 42 },
+    "hasPos": true,
+    "posConfigs": [{ "id": 1, "name": "Main Register" }],
+    "openSessions": [{ "configId": 1, "sessionId": 5, "name": "Main Register" }]
+  }
+}
+```
+
+### Create POS order (Kitchen Display)
+POST `/api/odoo/pos/orders`
+
+Request body:
+```
+{
+  "partner": { "name": "Table 7" },
+  "items": [ { "menuItemId": "LATTE-MED", "name": "Latte (M)", "quantity": 2, "unitPrice": 30 } ],
+  "notes": "No sugar",
+  "orderNumber": "WEB-123",
+  "posConfigName": "Main Register"   // or posConfigId
+}
+```
+
+Response:
+```
+{
+  "success": true,
+  "data": {
+    "posOrderId": 456,
+    "orderNumber": "WEB-123",
+    "webUrl": "https://your-odoo.odoo.com/web#model=pos.order&id=456&view_type=form"
+  },
+  "message": "POS order created (sent to kitchen if Kitchen Display is configured)"
+}
+```
+
+Kitchen Display requirements and notes:
+- You must have at least one open POS session (Odoo → Point of Sale → open the POS UI). The diagnostics endpoint shows which configs have an open session.
+- Products used must be available in POS. The integration auto-enables `available_in_pos` on the product template when creating items.
+- Ensure the Kitchen Display is enabled and linked to the POS configuration in Odoo (Restaurant features). The order should appear automatically once created via POS.
 
 ## Troubleshooting
 

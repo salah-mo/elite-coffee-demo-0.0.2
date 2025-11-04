@@ -148,6 +148,21 @@ curl -X POST http://localhost:3000/api/odoo/orders \
 ```
 Response includes `saleId`, `confirmed`, and a `webUrl` to open the record directly in Odoo.
 
+3) Create a POS order so it appears on Kitchen Display (requires open POS session):
+```bash
+curl http://localhost:3000/api/odoo/pos
+curl -X POST http://localhost:3000/api/odoo/pos/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "partner": { "name": "Table 7" },
+    "items": [ { "menuItemId": "LATTE-MED", "name": "Latte (M)", "quantity": 2, "unitPrice": 30 } ],
+    "notes": "No sugar",
+    "orderNumber": "WEB-POS-001",
+    "posConfigName": "Main Register"
+  }'
+```
+Response includes `posOrderId` and a direct `webUrl` to the POS Order in Odoo.
+
 ---
 
 ## 🔧 Common Issues & Solutions

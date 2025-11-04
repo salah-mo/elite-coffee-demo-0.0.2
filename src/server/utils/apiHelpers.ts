@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import type { ApiResponse } from '@/types';
+import { ApiError } from './errors';
 
 /**
  * Create a success response
@@ -40,11 +41,14 @@ export function jsonResponse<T>(data: ApiResponse<T>, status = 200) {
  */
 export function handleApiError(error: unknown) {
   console.error('API Error:', error);
-  
+  if (error instanceof ApiError) {
+    return jsonResponse(errorResponse(error.message), error.status);
+  }
+
   if (error instanceof Error) {
     return jsonResponse(errorResponse(error.message), 500);
   }
-  
+
   return jsonResponse(errorResponse('An unexpected error occurred'), 500);
 }
 

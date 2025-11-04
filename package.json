@@ -24,7 +24,8 @@
     "same-runtime": "^0.0.1",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "tough-cookie": "^5.1.2"
+    "tough-cookie": "^5.1.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
