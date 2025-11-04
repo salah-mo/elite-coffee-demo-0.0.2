@@ -129,6 +129,15 @@ curl -X POST http://localhost:3000/api/orders \
   }'
 ```
 
+### (Optional) Test Odoo Connectivity
+Set `ODOO_*` variables in `.env` then:
+```bash
+curl -X POST http://localhost:3000/api/odoo/test \
+  -H "Content-Type: application/json" \
+  -d '{"name":"API Test","email":"test@example.com"}'
+```
+If configured correctly, you should receive a JSON response with a `partnerId`.
+
 ---
 
 ## 🔧 Common Issues & Solutions
@@ -252,6 +261,7 @@ vercel
 - **API Reference:** See `START_HERE.md`
 - **Project Structure:** See `PROJECT_STRUCTURE.md`
 - **No Database Setup:** See `NO_DATABASE_SETUP.md`
+ - **Odoo Integration:** See `ODOO_INTEGRATION.md`
 
 ---
 

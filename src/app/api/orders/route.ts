@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server';
 import { cartDB, orderDB } from '@/server/utils/jsonDatabase';
-import { 
-  successResponse, 
-  jsonResponse, 
+import { createOdooClient, isOdooConfigured } from '@/server/utils/odooClient';
+import {
+  successResponse,
+  jsonResponse,
   handleApiError,
   parseRequestBody,
-  getQueryParams 
+  getQueryParams
 } from '@/server/utils/apiHelpers';
 import { PaymentMethod, OrderStatus, PaymentStatus } from '@/types';
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     const allOrders = orderDB.getByUserId(userId);
     const total = allOrders.length;
     const orders = allOrders.slice(
-      parseInt(offset), 
+      parseInt(offset),
       parseInt(offset) + parseInt(limit)
     );
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     const deliveryFee = body.addressId ? 30 : 0;
     const total = subtotal + tax + deliveryFee;
 
-    // Create order
+    // Create order locally first
     const order = orderDB.create({
       id: `order-${Date.now()}`,
       orderNumber: `ORD-${Date.now()}`,
@@ -87,6 +88,26 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Attempt to sync to Odoo in-line (best-effort). If Odoo not configured, skip.
+    if (isOdooConfigured()) {
+      try {
+        const odoo = createOdooClient();
+        if (odoo) {
+          const saleId = await odoo.createSaleOrderFromWebsiteOrder(order, {
+            name: 'Website Customer',
+          });
+          // Optionally: update local order status to CONFIRMED when Odoo order is created
+          orderDB.update(order.id, {
+            status: OrderStatus.CONFIRMED,
+            notes: `${order.notes ? order.notes + ' | ' : ''}Odoo saleId: ${saleId}`,
+          });
+        }
+      } catch (e) {
+        // Log but don't block client order creation
+        console.error('Failed to sync order to Odoo:', e);
+      }
+    }
 
     // Clear cart after order
     cartDB.clear(userId);

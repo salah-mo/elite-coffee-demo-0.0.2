@@ -226,6 +226,11 @@ npm run db:studio        # Open Prisma Studio
 |----------|-------------|----------|
 | `NEXT_PUBLIC_APP_URL` | Application URL | No |
 | `NODE_ENV` | Environment (development/production) | No |
+| `ODOO_HOST` | Odoo base URL (e.g., https://odoo.example.com:8069) | No |
+| `ODOO_DB` | Odoo database name | No |
+| `ODOO_USERNAME` | Odoo API user | No |
+| `ODOO_PASSWORD` | Odoo API password | No |
+| `ODOO_TIMEOUT_MS` | Optional request timeout (ms) | No |
 
 **Note**: No database connection string needed! The app uses JSON file storage.
 
@@ -256,6 +261,19 @@ rm -rf .next
 rm -rf node_modules
 npm install
 ```
+
+## 🧩 Odoo POS/ERP Integration (Optional)
+
+This project can push website orders into Odoo's Sales module using JSON‑RPC.
+
+- Configure env vars in `.env` (see `.env.example`).
+- Test connectivity:
+   ```http
+   POST /api/odoo/test
+   ```
+- Create a website order via `POST /api/orders` and it will best‑effort sync to Odoo.
+
+See the full guide in `ODOO_INTEGRATION.md`.
 
 ## 📞 Support
 
