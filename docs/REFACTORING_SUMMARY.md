@@ -2,10 +2,6 @@
 
 A modern, full-stack coffee shop web application built with Next.js 15, TypeScript, and JSON file-based storage.
 
-> Documentation moved: All docs now live in the `docs/` folder.
-> Start here: [docs/README.md](./docs/README.md) for the full index.
-> Quick links: [START_HERE](./docs/START_HERE.md) · [QUICKSTART](./docs/QUICKSTART.md) · [ODOO_INTEGRATION](./docs/ODOO_INTEGRATION.md)
-
 ## 🏗️ Project Structure
 
 ```
