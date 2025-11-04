@@ -1,467 +1,144 @@
-# Project Architecture & Refactoring Summary
+# Project Architecture
 
-## 📋 Overview
-This document outlines the complete refactoring of the Elite Coffee Shop project from a static Next.js site to a full-stack application with a robust backend infrastructure.
+This document describes the current codebase layout and backend architecture of Elite Coffee Shop. It reflects the latest implementation using a JSON file database and optional Odoo integration.
 
-## 🏗️ New Project Structure
+## 🏗️ Repository Tree (key parts)
 
-### Complete Directory Tree
 ```
-elite-coffee-shop/
-│
-├── prisma/                      # Database layer
-│   ├── schema.prisma           # Database schema definition
-│   ├── seed.ts                 # Database seeding script
-│   └── migrations/             # Database migrations (generated)
-│
-├── public/                      # Static assets
-│   └── images/                 # Public images
-│       ├── menu/               # Menu item images
-│       └── Hero Items/         # Hero section images
-│
+ELITE/
+├── data/
+│   └── database.json            # Persistent JSON database (carts, orders)
+├── public/
+│   └── images/                  # Static assets
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Home page
-│   │   ├── globals.css         # Global styles
-│   │   │
-│   │   ├── api/                # Backend API routes
-│   │   │   ├── menu/
-│   │   │   │   ├── route.ts            # GET /api/menu
-│   │   │   │   ├── [category]/
-│   │   │   │   │   └── route.ts        # GET /api/menu/[category]
-│   │   │   │   └── items/
-│   │   │   │       └── [slug]/
-│   │   │   │           └── route.ts    # GET /api/menu/items/[slug]
-│   │   │   │
+│   ├── app/                     # Next.js App Router (Next 15)
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx             # Home
+│   │   ├── api/                 # Backend API routes
 │   │   │   ├── cart/
-│   │   │   │   └── route.ts            # GET/POST/DELETE /api/cart
-│   │   │   │
-│   │   │   └── orders/
-│   │   │       ├── route.ts            # GET/POST /api/orders
-│   │   │       └── [id]/
-│   │   │           └── route.ts        # GET /api/orders/[id]
-│   │   │
-│   │   ├── menu/               # Menu pages
-│   │   │   ├── page.tsx
-│   │   │   ├── [category]/
-│   │   │   │   └── page.tsx
-│   │   │   └── [category]/[subcategory]/
-│   │   │       └── page.tsx
-│   │   │
+│   │   │   │   └── route.ts     # GET/POST/DELETE /api/cart
+│   │   │   ├── menu/
+│   │   │   │   ├── route.ts     # GET /api/menu
+│   │   │   │   ├── [category]/route.ts
+│   │   │   │   └── items/[slug]/route.ts
+│   │   │   ├── orders/
+│   │   │   │   ├── route.ts     # GET/POST /api/orders
+│   │   │   │   └── [id]/route.ts
+│   │   │   └── odoo/            # Odoo JSON-RPC integrations
+│   │   │       ├── orders/route.ts       # GET diagnostics, POST sale order
+│   │   │       ├── order-test/route.ts   # POST quick single-item order
+│   │   │       ├── products/route.ts     # GET product list
+│   │   │       └── pos/
+│   │   │           ├── route.ts          # GET POS diagnostics
+│   │   │           └── orders/route.ts   # POST pos.order (Kitchen Display)
+│   │   ├── menu/                # Menu pages (categories/subcategories)
 │   │   ├── rewards/
-│   │   │   └── page.tsx
-│   │   │
 │   │   └── shop/
-│   │       └── page.tsx
-│   │
-│   ├── components/             # React components
-│   │   ├── DrinkCard.tsx
-│   │   ├── Hero.tsx
-│   │   ├── Navigation.tsx
-│   │   ├── Footer.tsx
-│   │   └── ... (other components)
-│   │
-│   ├── server/                 # Backend logic (NEW)
-│   │   ├── config/
-│   │   │   └── database.ts     # Prisma client configuration
-│   │   │
-│   │   ├── services/           # Business logic layer
-│   │   │   ├── menuService.ts  # Menu operations
-│   │   │   ├── cartService.ts  # Cart operations
-│   │   │   └── orderService.ts # Order operations
-│   │   │
-│   │   ├── middleware/         # API middleware
-│   │   │   └── auth.ts         # Authentication middleware
-│   │   │
-│   │   ├── utils/              # Server utilities
-│   │   │   └── apiHelpers.ts   # API response helpers
-│   │   │
-│   │   └── models/             # Future: Additional model logic
-│   │
-│   ├── hooks/                  # Custom React hooks (NEW)
-│   │   └── useCart.ts          # Cart management hook
-│   │
-│   ├── contexts/               # React contexts (NEW)
-│   │   └── (ready for auth, theme, etc.)
-│   │
-│   ├── types/                  # TypeScript definitions (NEW)
-│   │   └── index.ts            # All type definitions
-│   │
-│   └── lib/                    # Utility libraries
-│       ├── menuData.ts         # Menu data (will migrate to DB)
-│       └── utils.ts            # General utilities
-│
-├── .env                        # Environment variables
-├── .env.example                # Environment template
-├── package.json                # Dependencies & scripts
-├── tsconfig.json               # TypeScript config
-├── next.config.js              # Next.js config
-├── tailwind.config.ts          # Tailwind config
-├── README.md                   # Main documentation
-├── BACKEND_SETUP.md            # Backend setup guide
-└── PROJECT_STRUCTURE.md        # This file
+│   ├── components/              # UI components
+│   ├── hooks/
+│   │   └── useCart.ts           # Client cart helper
+│   ├── lib/
+│   │   └── menuData.ts          # Menu data source
+│   ├── server/
+│   │   ├── middleware/
+│   │   │   └── auth.ts          # Placeholder auth middleware
+│   │   ├── utils/
+│   │   │   ├── apiHelpers.ts    # jsonResponse/error helpers
+│   │   │   ├── errors.ts        # HTTP error classes
+│   │   │   ├── jsonDatabase.ts  # JSON DB read/write helpers
+│   │   │   └── odooClient.ts    # Odoo JSON-RPC client
+│   │   └── validators/
+│   │       ├── cartSchemas.ts
+│   │       └── orderSchemas.ts
+│   └── types/
+│       └── index.ts             # Shared TypeScript types
+├── package.json                 # Scripts and dependencies
+├── next.config.js
+├── tailwind.config.ts
+└── docs/                        # Documentation (source of truth)
 ```
 
-## 🔄 Key Changes
+Notes:
+- There is no Prisma or SQL database in the current implementation. Persistence is handled by `data/database.json` via `src/server/utils/jsonDatabase.ts`.
+- Some older docs referenced Prisma as a future path; this is now captured under “Future Work” below.
 
-### 1. Backend Infrastructure
+## 🔧 Runtime and Scripts
 
-#### Database Layer (Prisma + PostgreSQL)
-- **Schema**: Comprehensive database schema with 15+ models
-- **Relations**: Proper foreign keys and relationships
-- **Types**: Full type safety from database to frontend
+From `package.json`:
 
-#### API Routes (Next.js Route Handlers)
-- RESTful API endpoints using Next.js 15 App Router
-- Proper HTTP methods (GET, POST, PATCH, DELETE)
-- Error handling and response formatting
-- Type-safe request/response
-
-#### Service Layer
-- **MenuService**: Menu and category management
-- **CartService**: Shopping cart operations
-- **OrderService**: Order processing and tracking
-- Separation of concerns (business logic vs. routes)
-
-### 2. Type System
-
-```typescript
-// Complete type definitions for:
-- User & Authentication
-- Menu items & categories
-- Cart & cart items
-- Orders & order items
-- Reviews, Rewards, Addresses
+```
+dev      → next dev -H 0.0.0.0 --turbopack
+build    → next build
+start    → next start
+lint     → npx tsc --noEmit && next lint
+format   → npx biome format --write
+db:reset → echo {"carts":{},"orders":[]} > data/database.json && echo Database reset complete!
 ```
 
-### 3. Frontend Enhancements
+## 📦 Dependencies (selected)
 
-#### Custom Hooks
-- `useCart()`: Complete cart management
-- Ready for: `useAuth()`, `useOrders()`, etc.
+- next 15, react 18, tailwindcss
+- zod (validation)
+- axios (+ cookie jar support) for Odoo client
+- framer-motion, gsap (UI)
+- dev: TypeScript, ESLint, Biome
 
-#### Context Providers (Ready)
-- Authentication context
-- Theme context
-- Cart context
+## 💾 Data Storage
 
-### 4. Configuration Updates
-
-#### package.json
-```json
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
-  }
-}
-```
-
-#### next.config.js
-- Removed static export (needed for API routes)
-- Optimized for dynamic server-side rendering
-- Image optimization enabled
-
-#### Environment Variables
-```env
-DATABASE_URL="postgresql://..."
-JWT_SECRET="..."
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NODE_ENV="development"
-```
-
-## 📊 Database Schema
-
-### Core Models
-
-#### User Management
-```prisma
-User {
-  - Authentication
-  - Profile info
-  - Role-based access
-  - Relations: Orders, Cart, Reviews, Addresses
-}
-
-Address {
-  - Multiple addresses per user
-  - Default address flag
-  - Delivery information
-}
-```
-
-#### Menu System
-```prisma
-Category {
-  - Top-level categories
-  - Display order
-  - Coming soon flag
-}
-
-SubCategory {
-  - Nested under categories
-  - Organized menu structure
-}
-
-MenuItem {
-  - Product details
-  - Pricing
-  - Availability
-  - Images & allergens
-  - Relations: Sizes, Flavors, Toppings
-}
-```
-
-#### E-commerce
-```prisma
-Cart {
-  - User's shopping cart
-  - Persistent across sessions
-}
-
-CartItem {
-  - Items in cart
-  - Customization options
-  - Quantity & pricing
-}
-
-Order {
-  - Order tracking
-  - Payment status
-  - Delivery information
-}
-
-OrderItem {
-  - Order line items
-  - Historical product data
-}
-```
-
-#### Engagement
-```prisma
-Review {
-  - Product ratings
-  - User comments
-  - Moderation support
-}
-
-Reward {
-  - Loyalty points
-  - User levels
-  - Total spend tracking
-}
-```
+- File: `data/database.json`
+- Accessed through `src/server/utils/jsonDatabase.ts` providing `cartDB` and `orderDB` helpers
+- Safe to delete/reset during dev using `npm run db:reset`
 
 ## 🚀 API Endpoints
 
-### Menu API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/menu` | Get all categories |
-| GET | `/api/menu/[category]` | Get category by slug |
-| GET | `/api/menu/items/[slug]` | Get menu item details |
+Menu:
+- GET `/api/menu`
+- GET `/api/menu/[category]`
+- GET `/api/menu/items/[slug]`
 
-### Cart API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/cart` | Get user's cart |
-| POST | `/api/cart` | Add item to cart |
-| DELETE | `/api/cart` | Clear cart |
+Cart:
+- GET `/api/cart` (requires `x-user-id` header; defaults to `demo-user`)
+- POST `/api/cart` (add item)
+- DELETE `/api/cart` (clear)
 
-### Orders API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders` | Get user's orders |
-| POST | `/api/orders` | Create new order |
+Orders:
+- GET `/api/orders` (by user via `x-user-id`)
+- POST `/api/orders`
+- GET `/api/orders/[id]`
 
-## 🔐 Security Features
+Odoo (optional integration):
+- GET `/api/odoo/orders` (diagnostics)
+- POST `/api/odoo/orders` (create sale.order; `autoConfirm` supported)
+- POST `/api/odoo/order-test` (quick single-item test)
+- GET `/api/odoo/products` (with sampling/fields)
+- GET `/api/odoo/pos` (POS diagnostics)
+- POST `/api/odoo/pos/orders` (create `pos.order` for Kitchen Display)
 
-### Implemented
-- Environment variable protection
-- Type-safe API handlers
-- Error handling
+## 🔐 Configuration
 
-### Planned
-- JWT authentication
-- Rate limiting
-- CORS configuration
-- Input validation (Zod)
-- SQL injection protection (Prisma)
-- XSS prevention
+Odoo environment variables (set in `.env` or `.env.local`):
 
-## 📈 Scalability Considerations
+```
+ODOO_HOST=https://your-odoo.odoo.com
+ODOO_DB=your_db
+ODOO_USERNAME=your_user@example.com
+ODOO_API_KEY=your_api_key
+# ODOO_PASSWORD=optional_password
+ODOO_TIMEOUT_MS=20000
+ODOO_INSECURE_SSL=true  # dev only
+```
 
-### Current Architecture
-- Modular service layer
-- Separation of concerns
-- Type-safe throughout
-- Database indexing
+The app does not require a database connection; no `DATABASE_URL` is needed.
 
-### Future Enhancements
-- Caching layer (Redis)
-- Image CDN integration
-- API rate limiting
-- Horizontal scaling support
-- WebSocket for real-time updates
-- Message queue for async operations
+## 🧭 Future Work (optional)
 
-## 🛠️ Development Workflow
-
-### Making Changes
-
-1. **Database Changes**
-   ```bash
-   # Edit schema
-   vi prisma/schema.prisma
-   
-   # Generate client
-   npm run db:generate
-   
-   # Update database
-   npm run db:push
-   ```
-
-2. **Adding API Endpoint**
-   ```bash
-   # Create route file
-   src/app/api/[endpoint]/route.ts
-   
-   # Create service
-   src/server/services/[name]Service.ts
-   
-   # Update types
-   src/types/index.ts
-   ```
-
-3. **Frontend Integration**
-   ```bash
-   # Create hook
-   src/hooks/use[Feature].ts
-   
-   # Use in component
-   src/components/[Component].tsx
-   ```
-
-## 📚 Documentation Files
-
-- **README.md**: Main project overview and setup
-- **BACKEND_SETUP.md**: Detailed backend setup guide
-- **PROJECT_STRUCTURE.md**: This file - architecture overview
-- **MENU_SYSTEM.md**: Menu system documentation (existing)
-
-## 🎯 Migration Path
-
-### Phase 1: ✅ Complete
-- Backend structure setup
-- Database schema
-- API routes
-- Service layer
-- Type definitions
-- Documentation
-
-### Phase 2: In Progress
-- Authentication system
-- User registration/login
-- Session management
-
-### Phase 3: Planned
-- Payment integration
-- Email notifications
-- Admin dashboard
-- Real-time order tracking
-- Analytics
-
-### Phase 4: Future
-- Mobile app API
-- Third-party integrations
-- Advanced analytics
-- Multi-language support
-
-## 🧪 Testing Strategy
-
-### Unit Tests (Planned)
-- Service layer functions
-- API endpoint handlers
-- Utility functions
-
-### Integration Tests (Planned)
-- API endpoint flows
-- Database operations
-- Authentication flows
-
-### E2E Tests (Planned)
-- User journeys
-- Checkout process
-- Order placement
-
-## 📦 Dependencies
-
-### Backend
-- `@prisma/client`: Database ORM
-- `bcryptjs`: Password hashing
-- `jsonwebtoken`: JWT authentication
-- `zod`: Schema validation
-
-### Frontend
-- `next`: React framework
-- `react`: UI library
-- `tailwindcss`: Styling
-- `framer-motion`: Animations
-
-### Development
-- `typescript`: Type safety
-- `eslint`: Code quality
-- `prisma`: Database tools
-- `tsx`: TypeScript execution
-
-## 🔄 State Management
-
-### Current
-- React hooks for local state
-- Custom hooks for shared state
-- No global state library (intentional)
-
-### Future Considerations
-- Zustand (if needed)
-- React Query for server state
-- Context API for theme/auth
-
-## 🎨 Code Style
-
-### TypeScript
-- Strict mode enabled
-- No implicit any
-- Path aliases (`@/`)
-
-### File Naming
-- Components: PascalCase
-- Hooks: camelCase with 'use' prefix
-- Services: camelCase with 'Service' suffix
-- Types: PascalCase
-
-### Import Order
-1. External packages
-2. Internal aliases (@/)
-3. Relative imports
-4. Types
-
-## 📞 Support & Contact
-
-For questions about the architecture:
-1. Check this document
-2. Review BACKEND_SETUP.md
-3. Check code comments
-4. Contact development team
+- Replace JSON file with a real database (e.g., Postgres + Prisma)
+- Authentication and permissions
+- Payments, email, admin UI
+- Caching, rate limiting, logging/metrics
 
 ---
 
-**Last Updated**: November 2, 2025
-**Version**: 1.0.0
-**Maintainers**: Development Team
+Last Updated: November 4, 2025
+Maintainers: Development Team

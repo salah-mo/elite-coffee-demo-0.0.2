@@ -7,141 +7,74 @@
 - npm or yarn package manager
 
 ### Installation Steps
+# 🚀 Quick Start Guide (5 minutes)
 
-1. **Clone & Navigate**
-   ```bash
-   cd "c:\Users\Salah Mohamed\Desktop\ELITE"
-   ```
+Spin up Elite Coffee Shop with zero database setup. Works on Windows PowerShell.
 
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+## Prerequisites
+- Node.js 18+ installed
+- Git (optional)
 
-3. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in Browser**
-   ```
-   http://localhost:3000
-   ```
-
-That's it! ✅ Your app is running!
-
----
-
-## 📱 Features Currently Working
-
-### ✅ Available Now
-- **Menu Browsing** - Browse all coffee categories and items
-- **Product Details** - View item details with customization options
-- **Shopping Cart** - Add/remove items, update quantities
-- **Order Creation** - Place orders with cart items
-- **Persistent Storage** - Data saved to JSON file
-
-### 🔄 Coming Soon
-- **User Authentication** - Login/Register system
-- **Rewards Program** - Loyalty points and rewards
-- **Shop** - Purchase coffee beans and equipment
-- **Payment Integration** - Online payment processing
-
----
-
-## 🛠️ Available Commands
-
-```bash
-# Development
-npm run dev          # Start dev server (http://localhost:3000)
-npm run build        # Build for production
-npm run start        # Start production server
-
-# Code Quality
-npm run lint         # Check TypeScript & ESLint errors
-npm run format       # Format code with Biome
-
-# Database
-npm run db:reset     # Reset cart and orders data
+## 1) Install dependencies
+```powershell
+npm install
 ```
 
----
+## 2) (Optional) Configure Odoo
+If you want to test the Odoo integration, create a `.env.local` file in the project root and add:
 
-## 📂 Project Structure
-
-```
-ELITE/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API endpoints
-│   │   │   ├── cart/          # Cart operations
-│   │   │   ├── menu/          # Menu data
-│   │   │   └── orders/        # Order management
-│   │   ├── menu/              # Menu pages
-│   │   └── page.tsx           # Homepage
-│   ├── components/            # React components
-│   ├── hooks/                 # Custom React hooks
-│   ├── lib/                   # Utilities & menu data
-│   ├── server/                # Backend logic
-│   │   └── utils/             # API helpers & database
-│   └── types/                 # TypeScript definitions
-├── public/                     # Static assets
-│   └── images/                # Images & logos
-├── data/                       # JSON database
-│   └── database.json          # Persistent storage
-└── package.json               # Dependencies
+```dotenv
+ODOO_HOST=https://your-odoo.odoo.com
+ODOO_DB=your_db
+ODOO_USERNAME=your_user@example.com
+ODOO_API_KEY=your_api_key
 ```
 
----
+You can skip this step if you don't use Odoo.
 
-## 🎯 Testing the API
+## 3) Start the dev server
+```powershell
+npm run dev
+```
 
-### Get Menu
-```bash
+Open http://localhost:3000
+
+## 4) Test the API
+
+Menu
+```powershell
 curl http://localhost:3000/api/menu
 ```
 
-### Get Cart
-```bash
+Cart (uses header x-user-id; defaults to demo-user)
+```powershell
 curl http://localhost:3000/api/cart -H "x-user-id: demo-user"
 ```
 
-### Add to Cart
-```bash
-curl -X POST http://localhost:3000/api/cart \
-  -H "Content-Type: application/json" \
-  -H "x-user-id: demo-user" \
-  -d '{
-    "menuItemId": "americano",
-    "quantity": 2,
-    "size": "Large"
-  }'
+Create order
+```powershell
+curl -X POST http://localhost:3000/api/orders -H "Content-Type: application/json" -H "x-user-id: demo-user" -d '{"paymentMethod":"CASH","notes":"Extra hot"}'
 ```
 
-### Create Order
-```bash
-curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" \
-  -H "x-user-id: demo-user" \
-  -d '{
-    "paymentMethod": "CASH",
-    "notes": "Extra hot"
-  }'
-```
-
-### (Optional) Odoo Integration Quick Tests
-1) Diagnostics (auth + Sales app installed + product count):
-```bash
+Odoo diagnostics (optional)
+```powershell
 curl http://localhost:3000/api/odoo/orders
 ```
 
-2) Create and confirm an Odoo order (appears in Sales → Orders):
-```bash
-curl -X POST http://localhost:3000/api/odoo/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "partner": { "name": "John Doe", "email": "john@example.com" },
-    "items": [ { "menuItemId": "WATER-500ML", "name": "Water 500ml", "quantity": 14, "unitPrice": 10 } ],
+## Useful commands
+```powershell
+npm run lint      # Typecheck + ESLint
+npm run format    # Biome format
+npm run db:reset  # Reset JSON database (data/database.json)
+```
+
+## Notes
+- No SQL database required. Data is stored in `data/database.json` and persists between runs.
+- The dev server uses Turbopack and binds to 0.0.0.0 by default.
+
+---
+
+Happy Coding! ☕
     "autoConfirm": true,
     "orderNumber": "WEB-TEST-001"
   }'

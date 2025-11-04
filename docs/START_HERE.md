@@ -1,8 +1,8 @@
-# ✅ Project Refactoring Complete - JSON Database Version
+# ✅ Project Ready – JSON Database Version
 
 ## 🎉 Success! Your Backend is Ready
 
-Your Elite Coffee Shop project has been successfully refactored with a **fully functional backend** that uses a **JSON file-based database** for persistent storage!
+Your Elite Coffee Shop project ships with a **fully functional backend** that uses a **JSON file-based database** for persistent storage. Optional integration with **Odoo** is available for real-world orders and POS.
 
 ---
 
@@ -39,7 +39,7 @@ src/
 ### ✨ Key Features
 
 ✅ **RESTful API Endpoints** - 8 working endpoints  
-✅ **Persistent Storage** - Data saved to JSON file  
+✅ **Persistent Storage** - Data saved to JSON file (`data/database.json`)  
 ✅ **No Database Setup** - Works immediately  
 ✅ **Type-Safe** - Full TypeScript support  
 ✅ **Custom Hooks** - Ready-to-use React hooks  
@@ -51,53 +51,40 @@ src/
 ## 🚀 How to Use
 
 ### 1. Start the Server
-```bash
+```powershell
 npm run dev
 ```
 
 ### 2. Test the API Endpoints
 
 #### Get All Menu Items
-```bash
+```powershell
 curl http://localhost:3000/api/menu
 ```
 
 #### Get Specific Category
-```bash
+```powershell
 curl http://localhost:3000/api/menu/classic-drinks
 ```
 
 #### Get Menu Item
-```bash
+```powershell
 curl http://localhost:3000/api/menu/items/americano
 ```
 
 #### Get Cart
-```bash
+```powershell
 curl http://localhost:3000/api/cart -H "x-user-id: demo-user"
 ```
 
 #### Add to Cart
-```bash
-curl -X POST http://localhost:3000/api/cart \
-  -H "Content-Type: application/json" \
-  -H "x-user-id: demo-user" \
-  -d '{
-    "menuItemId": "americano",
-    "quantity": 2,
-    "size": "Large"
-  }'
+```powershell
+curl -X POST http://localhost:3000/api/cart -H "Content-Type: application/json" -H "x-user-id: demo-user" -d '{"menuItemId":"americano","quantity":2,"size":"Large"}'
 ```
 
 #### Create Order
-```bash
-curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" \
-  -H "x-user-id": "demo-user" \
-  -d '{
-    "paymentMethod": "CASH",
-    "notes": "Extra hot please"
-  }'
+```powershell
+curl -X POST http://localhost:3000/api/orders -H "Content-Type: application/json" -H "x-user-id: demo-user" -d '{"paymentMethod":"CASH","notes":"Extra hot please"}'
 ```
 
 ---
@@ -201,32 +188,16 @@ All endpoints return responses in this format:
 
 ## 🗂️ Data Storage
 
-### In-Memory Store
-Data is stored in server memory using JavaScript Maps:
+### JSON File Store
+Data is stored in `data/database.json` via helpers in `src/server/utils/jsonDatabase.ts`.
 
-```typescript
-// Automatically handles:
-- Multiple users (separate carts per user)
-- Cart items with customization
-- Order history
-- Automatic ID generation
-```
+- ✅ Persists across server restarts
+- ✅ Separate carts per user (`x-user-id` header, defaults to `demo-user`)
+- ✅ Order history retained
+- 🔧 Reset any time with `npm run db:reset`
 
-### Data Persistence
-- ✅ **During Server Runtime**: Data persists while server is running
-- ❌ **After Restart**: Data is cleared when server restarts
-- 🔄 **Perfect for Development**: No database setup needed
-
-### When You Need Persistence
-The structure is database-ready! Just:
-1. Set up PostgreSQL
-2. Install Prisma: `npm install @prisma/client prisma`
-3. Run: `npx prisma generate && npx prisma db push`
-4. Replace `inMemoryStore` calls with Prisma calls
-
-All database schema and migration files are already created in:
-- `prisma/schema.prisma`
-- `src/server/services/` (database-ready service files)
+### When You Need SQL
+If/when you need a real database, you can replace the JSON helpers with your ORM/database of choice (e.g., Prisma + Postgres). This project does not currently ship with a Prisma schema or migrations; you’d add those as part of that migration.
 
 ---
 
@@ -257,12 +228,13 @@ import type {
 
 ## 🔧 Available Commands
 
-```bash
+```powershell
 npm run dev       # Start development server
 npm run build     # Build for production
 npm run start     # Start production server
-npm run lint      # Run ESLint
+npm run lint      # Typecheck + ESLint
 npm run format    # Format code with Biome
+npm run db:reset  # Reset JSON database
 ```
 
 ---
@@ -271,9 +243,9 @@ npm run format    # Format code with Biome
 
 | File | Description |
 |------|-------------|
-| `NO_DATABASE_SETUP.md` | This file - Quick start guide |
-| `PROJECT_STRUCTURE.md` | Complete architecture overview |
-| `README.md` | Main project documentation |
+| `NO_DATABASE_SETUP.md` | No‑DB quick start |
+| `PROJECT_STRUCTURE.md` | Architecture overview |
+| `README.md` | Docs index |
 
 ---
 
@@ -300,22 +272,14 @@ npm run format    # Format code with Biome
 
 When you're ready, switching to database is easy:
 
-### Current (In-Memory)
+### Example swap (future)
 ```typescript
-// src/app/api/cart/route.ts
-const items = inMemoryStore.cart.get(userId);
-```
+// Current: JSON file helpers
+const items = cartDB.get(userId);
 
-### Future (Database)
-```typescript
-// src/app/api/cart/route.ts
-const cart = await prisma.cart.findUnique({
-  where: { userId },
-  include: { items: true }
-});
+// Future: ORM call (pseudo code)
+// const cart = await prisma.cart.findUnique({ where: { userId }, include: { items: true } });
 ```
-
-All the database service files are ready in `src/server/services/`!
 
 ---
 
@@ -342,12 +306,8 @@ All the database service files are ready in `src/server/services/`!
 ## 🆘 Troubleshooting
 
 ### API not responding?
-```bash
-# Check server is running
-npm run dev
-
-# Check correct port
-http://localhost:3000
+```powershell
+npm run dev  # ensure server is running at http://localhost:3000
 ```
 
 ### CORS errors?
@@ -355,8 +315,7 @@ http://localhost:3000
 - For external access, add CORS middleware
 
 ### Type errors?
-```bash
-# Rebuild types
+```powershell
 npm run lint
 ```
 

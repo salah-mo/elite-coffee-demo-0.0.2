@@ -15,7 +15,7 @@ The menu system follows a clean MVC (Model-View-Controller) architecture with sc
 - **Main Menu Page**: `src/app/menu/page.tsx`
 - **Category Page**: `src/app/menu/[category]/page.tsx`
 - **Subcategory Page**: `src/app/menu/[category]/[subcategory]/page.tsx`
-- **Item Detail Page**: `src/app/menu/[category]/[subcategory]/[item]/page.tsx`
+- **Item Detail (Client Component)**: `src/components/ItemDetailClient.tsx`
 - **Menu Image Component**: `src/components/MenuImage.tsx`
 
 ## URL Structure
@@ -24,7 +24,6 @@ The menu system follows a clean MVC (Model-View-Controller) architecture with sc
 /menu                           # Main menu page
 /menu/[category]                # Category page (e.g., /menu/drinks)
 /menu/[category]/[subcategory]  # Subcategory page (e.g., /menu/drinks/hot-coffee)
-/menu/[category]/[subcategory]/[item]  # Item detail page
 ```
 
 ## Features
@@ -47,11 +46,10 @@ The menu system follows a clean MVC (Model-View-Controller) architecture with sc
 - Availability status
 - Featured item badges
 
-### 4. Item Detail Pages
-- Image slider with navigation
+### 4. Item Detail UI
+- Client component renders details within category/subcategory flows
 - Size selection with price modifiers
-- Topping selection
-- Flavor options
+- Topping and flavor options
 - Allergen information
 - Real-time price calculation
 - Recommended products with package offers

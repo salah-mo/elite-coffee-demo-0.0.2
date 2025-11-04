@@ -26,7 +26,7 @@ This guide explains how this project integrates with Odoo so website orders are 
 
 ## Environment variables
 
-Set these in `.env` (API key is preferred over password):
+Set these in `.env` or `.env.local` (API key is preferred over password):
 
 ```
 ODOO_HOST=https://your-odoo.odoo.com

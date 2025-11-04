@@ -1,6 +1,6 @@
 # 🚀 Quick Start (No Database Required)
 
-Your Elite Coffee Shop has been refactored with a working backend - no database setup needed!
+Your Elite Coffee Shop runs with a working backend and no external database. Data is stored in a JSON file.
 
 ## ✨ What's Been Done
 
@@ -10,7 +10,7 @@ src/
 ├── server/
 │   ├── utils/
 │   │   ├── apiHelpers.ts      # API response helpers
-│   │   └── inMemoryStore.ts   # In-memory data storage
+│   │   └── jsonDatabase.ts    # JSON file storage (persistent)
 │   └── middleware/
 │       └── auth.ts             # Authentication (ready for future)
 ├── app/api/                    # API Routes
@@ -24,7 +24,7 @@ src/
 
 ### Working API Endpoints
 
-All endpoints work with in-memory storage (data persists during runtime):
+All endpoints work with the JSON file database (data persists across restarts):
 
 #### Menu API
 - `GET /api/menu` - Get all menu categories
@@ -44,12 +44,12 @@ All endpoints work with in-memory storage (data persists during runtime):
 ## 🏃 Get Started (3 Steps)
 
 ### 1. Start Development Server
-```bash
+```powershell
 npm run dev
 ```
 
 ### 2. Test the API
-```bash
+```powershell
 # Get all menu items
 curl http://localhost:3000/api/menu
 
@@ -57,34 +57,23 @@ curl http://localhost:3000/api/menu
 curl http://localhost:3000/api/cart -H "x-user-id: demo-user"
 
 # Add item to cart
-curl -X POST http://localhost:3000/api/cart \
-  -H "Content-Type: application/json" \
-  -H "x-user-id: demo-user" \
-  -d '{
-    "menuItemId": "americano",
-    "quantity": 2,
-    "size": "Large"
-  }'
+curl -X POST http://localhost:3000/api/cart -H "Content-Type: application/json" -H "x-user-id: demo-user" -d '{"menuItemId":"americano","quantity":2,"size":"Large"}'
 ```
 
 ### 3. Use in Your Frontend
 ```typescript
 // Example: Fetch menu
-const response = await fetch('/api/menu');
-const { data } = await response.json();
+const res = await fetch('/api/menu');
+const { data } = await res.json();
 
 // Example: Add to cart
-const response = await fetch('/api/cart', {
+await fetch('/api/cart', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'x-user-id': 'demo-user'
   },
-  body: JSON.stringify({
-    menuItemId: 'americano',
-    quantity: 2,
-    size: 'Large'
-  })
+  body: JSON.stringify({ menuItemId: 'americano', quantity: 2, size: 'Large' })
 });
 ```
 
@@ -131,7 +120,7 @@ elite-coffee-shop/
 │   ├── server/               # Backend logic
 │   │   ├── utils/           
 │   │   │   ├── apiHelpers.ts    # Response helpers
-│   │   │   └── inMemoryStore.ts # Data storage
+│   │   │   └── jsonDatabase.ts # Data storage (file-based)
 │   │   └── middleware/       # Auth & security
 │   ├── hooks/                # Custom React hooks
 │   ├── types/                # TypeScript types
@@ -143,26 +132,21 @@ elite-coffee-shop/
 ## ⚡ Key Features
 
 ✅ RESTful API - Clean, type-safe endpoints  
-✅ In-Memory Storage - Cart & orders persist during runtime  
+✅ JSON File Storage - Cart & orders persist across restarts  
 ✅ Type Safety - Full TypeScript support  
 ✅ Custom Hooks - Easy integration with React  
-✅ No Database - Works immediately, no setup required  
-✅ Production Ready - Easy to migrate to database later  
+✅ No SQL Database - Works immediately  
+✅ Production-Ready structure  
 
 ## 🔄 Data Persistence
 
-Current (In-Memory):
-- Data stored in server memory
-- Persists during server runtime
-- Lost on server restart
-- Perfect for development
+Current (JSON file):
+- Data stored in `data/database.json`
+- Persists across restarts
+- Reset any time with `npm run db:reset`
 
-Future (Database):
-The structure is ready for database integration:
-1. Prisma schema already created (`prisma/schema.prisma`)
-2. Service files ready (`src/server/services/`)
-3. Just replace in-memory calls with Prisma calls
-4. No API changes needed
+Future (SQL database):
+- When needed, replace JSON helpers with your ORM of choice. This repo does not include Prisma schema/migrations by default.
 
 ## 🎨 Frontend Integration
 
@@ -215,12 +199,13 @@ All the database code is ready in:
 
 ## 📖 Available Scripts
 
-```bash
+```powershell
 npm run dev       # Start development server
 npm run build     # Build for production
 npm run start     # Start production server
-npm run lint      # Run linter
+npm run lint      # Typecheck + ESLint
 npm run format    # Format code
+npm run db:reset  # Reset JSON DB
 ```
 
 ## 🎯 Next Steps
@@ -242,12 +227,12 @@ npm run format    # Format code
 ## 🆘 Need Help?
 
 - Check `PROJECT_STRUCTURE.md` for architecture details
+- See `ODOO_INTEGRATION.md` to enable Odoo endpoints
 - API returns errors with helpful messages
 - All endpoints include TypeScript types
-- Console logs show request/response data
 
 ---
 
 Everything works out of the box - no database setup required! 🎉
 
-Start building your features right away and add database persistence later when you need it.
+Start building your features right away and switch to a database later if you need it.
