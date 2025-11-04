@@ -13,10 +13,6 @@ elite-coffee-shop/
 ├── src/
 │   ├── app/               # Next.js App Router
 │   │   ├── api/           # API routes
-│   │   │   ├── menu/      # Menu endpoints
-│   │   │   ├── cart/      # Cart endpoints
-│   │   │   └── orders/    # Order endpoints
-│   │   ├── menu/          # Menu pages
 │   │   ├── rewards/       # Rewards page
 │   │   └── shop/          # Shop page
 │   ├── components/        # React components
@@ -27,24 +23,22 @@ elite-coffee-shop/
 │   │   └── utils/         # Server utilities (JSON database, API helpers)
 │   └── types/             # TypeScript types
 └── ...config files
-```
-
+| `ODOO_API_KEY` | Odoo API key (preferred) | No |
+| `ODOO_PASSWORD` | Odoo password (fallback) | No |
+| `ODOO_TIMEOUT_MS` | Optional request timeout (ms) | No |
+| `ODOO_INSECURE_SSL` | Allow self-signed certs in dev (true/false) | No |
 ## 🚀 Features
 
 ### Current Features
 - ✅ Menu browsing with categories and subcategories
-- ✅ Product details with customization options
-- ✅ Shopping cart functionality
 - ✅ Order management system
 - ✅ RESTful API endpoints
 - ✅ JSON file-based persistent storage
 - ✅ TypeScript for type safety
-- ✅ Responsive design with Tailwind CSS
 
 ### Backend Architecture
 - **API Routes**: RESTful API endpoints using Next.js Route Handlers
 - **Data Storage**: JSON file-based database (no PostgreSQL needed!)
-- **Type Safety**: Full TypeScript support across frontend and backend
 
 ### Planned Features
 - 🔄 User authentication (JWT)

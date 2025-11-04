@@ -129,14 +129,24 @@ curl -X POST http://localhost:3000/api/orders \
   }'
 ```
 
-### (Optional) Test Odoo Connectivity
-Set `ODOO_*` variables in `.env` then:
+### (Optional) Odoo Integration Quick Tests
+1) Diagnostics (auth + Sales app installed + product count):
 ```bash
-curl -X POST http://localhost:3000/api/odoo/test \
-  -H "Content-Type: application/json" \
-  -d '{"name":"API Test","email":"test@example.com"}'
+curl http://localhost:3000/api/odoo/orders
 ```
-If configured correctly, you should receive a JSON response with a `partnerId`.
+
+2) Create and confirm an Odoo order (appears in Sales → Orders):
+```bash
+curl -X POST http://localhost:3000/api/odoo/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "partner": { "name": "John Doe", "email": "john@example.com" },
+    "items": [ { "menuItemId": "WATER-500ML", "name": "Water 500ml", "quantity": 14, "unitPrice": 10 } ],
+    "autoConfirm": true,
+    "orderNumber": "WEB-TEST-001"
+  }'
+```
+Response includes `saleId`, `confirmed`, and a `webUrl` to open the record directly in Odoo.
 
 ---
 
