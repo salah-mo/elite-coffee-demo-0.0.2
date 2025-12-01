@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { Cart, CartItem } from '@/types';
+import { useState, useEffect, useCallback } from "react";
+import { API_CONFIG, ERROR_MESSAGES } from "@/lib/constants";
+import { cachedFetch, invalidateCache } from "@/lib/apiCache";
+import type { Cart, CartItem } from "@/types";
 
 interface UseCartReturn {
   cart: Cart | null;
@@ -12,7 +14,7 @@ interface UseCartReturn {
       size?: string;
       flavor?: string;
       toppings?: string[];
-    }
+    },
   ) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   updateQuantity: (cartItemId: string, quantity: number) => Promise<void>;
@@ -24,11 +26,11 @@ interface UseCartReturn {
 
 /**
  * Custom hook for managing shopping cart
- * 
+ *
  * Usage:
  * ```tsx
  * const { cart, addToCart, removeFromCart } = useCart();
- * 
+ *
  * // Add item to cart
  * await addToCart('item-id', 2, { size: 'Large', flavor: 'Vanilla' });
  * ```
@@ -44,20 +46,23 @@ export function useCart(): UseCartReturn {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/cart', {
-        headers: {
-          'x-user-id': 'demo-user', // TODO: Replace with actual user ID from auth
+      const data = await cachedFetch<{ cart: Cart }>(
+        `${API_CONFIG.BASE_URL}/cart`,
+        {
+          headers: {
+            "x-user-id": API_CONFIG.DEFAULT_USER_ID, // TODO: Replace with actual user ID from auth
+          },
+          cacheKey: `cart:${API_CONFIG.DEFAULT_USER_ID}`,
+          cacheTTL: 30 * 1000, // 30 seconds cache for cart data
         },
-      });
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch cart');
-      }
-
-      const data = await response.json();
-      setCart(data.data.cart);
+      setCart(data.cart);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage =
+        err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+      setError(errorMessage);
+      console.error("Failed to fetch cart:", err);
     } finally {
       setLoading(false);
     }
@@ -76,16 +81,15 @@ export function useCart(): UseCartReturn {
         size?: string;
         flavor?: string;
         toppings?: string[];
-      }
+      },
     ) => {
       try {
         setError(null);
 
-        const response = await fetch('/api/cart', {
-          method: 'POST',
+        await cachedFetch(`${API_CONFIG.BASE_URL}/cart`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-user-id': 'demo-user', // TODO: Replace with actual user ID
+            "x-user-id": API_CONFIG.DEFAULT_USER_ID, // TODO: Replace with actual user ID
           },
           body: JSON.stringify({
             menuItemId,
@@ -94,18 +98,18 @@ export function useCart(): UseCartReturn {
           }),
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to add item to cart');
-        }
-
-        // Refresh cart after adding
+        // Invalidate cart cache and refresh
+        invalidateCache(`cart:${API_CONFIG.DEFAULT_USER_ID}`);
         await fetchCart();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage =
+          err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        console.error("Failed to add item to cart:", err);
         throw err;
       }
     },
-    [fetchCart]
+    [fetchCart],
   );
 
   // Remove item from cart
@@ -114,24 +118,32 @@ export function useCart(): UseCartReturn {
       try {
         setError(null);
 
-        const response = await fetch(`/api/cart/${cartItemId}`, {
-          method: 'DELETE',
-          headers: {
-            'x-user-id': 'demo-user',
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/cart/${cartItemId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "x-user-id": API_CONFIG.DEFAULT_USER_ID,
+            },
           },
-        });
+        );
 
-        if (!response.ok) {
-          throw new Error('Failed to remove item from cart');
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || ERROR_MESSAGES.GENERIC);
         }
 
         await fetchCart();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage =
+          err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        console.error("Failed to remove item from cart:", err);
         throw err;
       }
     },
-    [fetchCart]
+    [fetchCart],
   );
 
   // Update item quantity
@@ -140,26 +152,34 @@ export function useCart(): UseCartReturn {
       try {
         setError(null);
 
-        const response = await fetch(`/api/cart/${cartItemId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-user-id': 'demo-user',
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/cart/${cartItemId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "x-user-id": API_CONFIG.DEFAULT_USER_ID,
+            },
+            body: JSON.stringify({ quantity }),
           },
-          body: JSON.stringify({ quantity }),
-        });
+        );
 
-        if (!response.ok) {
-          throw new Error('Failed to update quantity');
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || ERROR_MESSAGES.GENERIC);
         }
 
         await fetchCart();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const errorMessage =
+          err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+        setError(errorMessage);
+        console.error("Failed to update quantity:", err);
         throw err;
       }
     },
-    [fetchCart]
+    [fetchCart],
   );
 
   // Clear entire cart
@@ -167,27 +187,33 @@ export function useCart(): UseCartReturn {
     try {
       setError(null);
 
-      const response = await fetch('/api/cart', {
-        method: 'DELETE',
+      const response = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
+        method: "DELETE",
         headers: {
-          'x-user-id': 'demo-user',
+          "x-user-id": API_CONFIG.DEFAULT_USER_ID,
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to clear cart');
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || ERROR_MESSAGES.GENERIC);
       }
 
       setCart(null);
       await fetchCart();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage =
+        err instanceof Error ? err.message : ERROR_MESSAGES.GENERIC;
+      setError(errorMessage);
+      console.error("Failed to clear cart:", err);
       throw err;
     }
   }, [fetchCart]);
 
   // Calculate item count
-  const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const itemCount =
+    cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   // Calculate total
   const total = cart?.items.reduce((sum, item) => sum + item.price, 0) || 0;
