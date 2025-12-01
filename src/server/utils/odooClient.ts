@@ -505,6 +505,10 @@ export class OdooClient {
 
     // Last resort: try direct record creation (may not trigger KDS live events)
     try {
+      // Generate pos_reference and date_order for the fallback
+      const pos_reference = websiteOrder.orderNumber || uid;
+      const date_order = new Date().toISOString();
+      
       // Create the POS order first
       const createResult = await this.rpc<number | number[]>("pos.order", "create", [
         {
