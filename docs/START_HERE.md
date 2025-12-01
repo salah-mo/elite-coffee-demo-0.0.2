@@ -14,37 +14,50 @@ src/
 ├── server/
 │   ├── utils/
 │   │   ├── apiHelpers.ts      ✨ API response helpers
-│   │   └── jsonDatabase.ts    ✨ JSON file storage (PERSISTENT!)
-│   └── middleware/
-│       └── auth.ts             ✨ Authentication middleware (ready for future)
-├── app/api/                    ✨ API Routes (NEW!)
+│   │   ├── errors.ts          ✨ HTTP error classes
+│   │   ├── jsonDatabase.ts    ✨ JSON file storage (PERSISTENT!)
+│   │   └── odooClient.ts      ✨ Optional Odoo JSON-RPC integration
+│   ├── middleware/
+│   │   └── auth.ts            ✨ Authentication middleware (ready for future)
+│   └── validators/
+│       ├── cartSchemas.ts     ✨ Zod schemas for cart validation
+│       └── orderSchemas.ts    ✨ Zod schemas for order validation
+├── app/api/                    ✨ API Routes
 │   ├── menu/
 │   │   ├── route.ts           # GET /api/menu
 │   │   ├── [category]/route.ts # GET /api/menu/[category]
 │   │   └── items/[slug]/route.ts # GET /api/menu/items/[slug]
 │   ├── cart/
-│   │   └── route.ts           # GET/POST/DELETE /api/cart
-│   └── orders/
-│       ├── route.ts           # GET/POST /api/orders
-│       └── [id]/route.ts      # GET /api/orders/[id]
+│   │   ├── route.ts           # GET/POST/DELETE /api/cart
+│   │   └── [itemId]/route.ts  # DELETE/PATCH /api/cart/[itemId]
+│   ├── orders/
+│   │   ├── route.ts           # GET/POST /api/orders
+│   │   └── [id]/route.ts      # GET /api/orders/[id]
+│   └── odoo/                   # Optional Odoo integration
+│       ├── orders/route.ts    # Odoo sales orders
+│       ├── products/route.ts  # Odoo products
+│       ├── order-test/route.ts # Quick test endpoint
+│       └── pos/
+│           ├── route.ts       # POS diagnostics
+│           └── orders/route.ts # POS orders (Kitchen Display)
 ├── types/                      ✨ TypeScript definitions
 │   └── index.ts
 ├── hooks/                      ✨ Custom React hooks
 │   └── useCart.ts
-└── data/                       ✨ Data Storage (NEW!)
-    ├── database.json          # JSON database file
-    └── .gitkeep               # Git tracking
+└── data/                       ✨ Data Storage
+    └── database.json          # JSON database file (persistent)
 ```
 
 ### ✨ Key Features
 
-✅ **RESTful API Endpoints** - 8 working endpoints  
+✅ **RESTful API Endpoints** - 10+ working endpoints (menu, cart, orders, Odoo)  
 ✅ **Persistent Storage** - Data saved to JSON file (`data/database.json`)  
-✅ **No Database Setup** - Works immediately  
-✅ **Type-Safe** - Full TypeScript support  
-✅ **Custom Hooks** - Ready-to-use React hooks  
+✅ **No Database Setup** - Works immediately, no SQL required  
+✅ **Type-Safe** - Full TypeScript support with Zod validation  
+✅ **Custom Hooks** - Ready-to-use React hooks (`useCart`)  
 ✅ **Survives Restarts** - Data persists across server restarts  
-✅ **Production-Ready Structure** - Easy to scale  
+✅ **Production-Ready Structure** - Easy to scale and migrate  
+✅ **Optional Odoo Integration** - Connect to Odoo ERP/POS if needed  
 
 ---
 
@@ -188,16 +201,28 @@ All endpoints return responses in this format:
 
 ## 🗂️ Data Storage
 
-### JSON File Store
+### JSON File Database
 Data is stored in `data/database.json` via helpers in `src/server/utils/jsonDatabase.ts`.
 
+**Structure:**
+```json
+{
+  "carts": {
+    "user-id": { "userId": "user-id", "items": [...] }
+  },
+  "orders": [...]
+}
+```
+
+**Features:**
 - ✅ Persists across server restarts
 - ✅ Separate carts per user (`x-user-id` header, defaults to `demo-user`)
 - ✅ Order history retained
+- ✅ Thread-safe read/write operations
 - 🔧 Reset any time with `npm run db:reset`
 
 ### When You Need SQL
-If/when you need a real database, you can replace the JSON helpers with your ORM/database of choice (e.g., Prisma + Postgres). This project does not currently ship with a Prisma schema or migrations; you’d add those as part of that migration.
+If/when you need a real database, you can replace the JSON helpers with your ORM/database of choice (e.g., Prisma + PostgreSQL, Drizzle, or TypeORM). The API structure and validation schemas are already in place to support this transition.
 
 ---
 
@@ -270,16 +295,30 @@ npm run db:reset  # Reset JSON database
 
 ## 🚧 Migration to Database (Future)
 
-When you're ready, switching to database is easy:
+When you're ready, switching to a SQL database is straightforward:
 
-### Example swap (future)
+### Migration Steps
+1. **Choose your stack**: Prisma + PostgreSQL, Drizzle + SQLite, etc.
+2. **Install dependencies**: `npm install @prisma/client prisma` (or your preferred ORM)
+3. **Create schema**: Define your database schema matching current types
+4. **Update helpers**: Replace `cartDB` and `orderDB` calls with ORM queries
+5. **Migrate data**: Export from `database.json` and import to SQL
+
+### Example Replacement
 ```typescript
 // Current: JSON file helpers
-const items = cartDB.get(userId);
+import { cartDB } from '@/server/utils/jsonDatabase';
+const cart = cartDB.get(userId);
 
-// Future: ORM call (pseudo code)
-// const cart = await prisma.cart.findUnique({ where: { userId }, include: { items: true } });
+// Future: Prisma example
+import { prisma } from '@/server/db';
+const cart = await prisma.cart.findUnique({ 
+  where: { userId }, 
+  include: { items: true } 
+});
 ```
+
+The API routes remain unchanged — only the data access layer needs updating!
 
 ---
 
@@ -291,9 +330,10 @@ const items = cartDB.get(userId);
 - Check browser console for errors
 
 ### Development
-- Use `x-user-id` header to test different users
-- Data resets on server restart (expected behavior)
+- Use `x-user-id` header to test different users (defaults to `demo-user`)
+- Data persists across server restarts (stored in `database.json`)
 - All responses include helpful error messages
+- Use `npm run db:reset` to clear all data during development
 
 ### Production
 - Replace in-memory storage with database
@@ -326,12 +366,13 @@ npm run lint
 Your project now has:
 
 ✅ **Complete Backend Structure**  
-✅ **8 Working API Endpoints**  
-✅ **In-Memory Data Storage**  
-✅ **Type-Safe TypeScript**  
-✅ **Custom React Hooks**  
+✅ **10+ Working API Endpoints** (Menu, Cart, Orders, Odoo)  
+✅ **Persistent JSON File Storage**  
+✅ **Type-Safe TypeScript** with Zod validation  
+✅ **Custom React Hooks** (`useCart`)  
 ✅ **Production-Ready Architecture**  
 ✅ **Zero Database Setup Required**  
+✅ **Optional Odoo ERP/POS Integration**  
 
 **You can start building features immediately!** 🚀
 

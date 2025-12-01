@@ -13,7 +13,7 @@ This guide explains how this project integrates with Odoo so website orders are 
   - Diagnostics: `GET /api/odoo/orders` → configured, ping, hasSale, productCount
   - Create order: `POST /api/odoo/orders` → creates quotation; optional confirmation
   - Test order: `POST /api/odoo/order-test` → minimal single-item test
-  - List products: `GET /api/odoo/products` → supports random sampling, field selection
+  - List products: `GET /api/odoo/products` → supports random sampling, field selection, expansions
   - POS diagnostics: `GET /api/odoo/pos` → pos.configs and open sessions
   - Create POS order: `POST /api/odoo/pos/orders` → creates `pos.order` via `create_from_ui` so it shows in Kitchen Display
 
@@ -119,16 +119,30 @@ Body (example):
 
 Response includes `saleId` and `webUrl`.
 
-### List products (with random sampling)
-GET `/api/odoo/products?limit=20&random=true`
+### List products (with sampling and expansions)
+GET `/api/odoo/products`
 
 Query params:
-- `limit` or `sample`: number of items; required when `random=true`
-- `random`: boolean; if true, samples a random window
-- `includeInactive`: boolean; include products where `active=false`
-- `fields`: comma-separated fields (default: id,name,default_code,list_price,type,active)
+- `model`: `product.product` (default) or `product.template`.
+- `limit` or `sample`: number of items; required when `random=true`.
+- `random`: boolean; if true, samples a random window.
+- `includeInactive`: boolean; include products where `active=false`.
+- `fields`: csv fields to return (default set); use `fields=all` for all readable.
+- `expand`: csv among `category,uom,taxes,template,attributes,images` to include related entities.
+- `imageSize`: `image_128|image_1024|image_1920` (default `image_128`).
+- `page`, `pageSize`: optional pagination when not using `random`.
 
-No hidden default limit: if you omit `limit` and `random=false`, it returns all matching products.
+Notes:
+- When `expand` is used, required link IDs are auto-included even if not specified in `fields`.
+- Expansions return nested objects: e.g. `category: { id, name }`, `uom: { id, name }`, `taxes: [{ id, name, amount }]`, `template: {...}`, `attributes: [{ attribute, values }]`, and image bytes in the chosen `imageSize` field.
+- No hidden default limit: if you omit `limit` and `random=false`, it returns all matching records (or paginate via `page`/`pageSize`).
+
+Examples:
+- Basic: `/api/odoo/products`
+- Random sample: `/api/odoo/products?limit=20&random=true`
+- All fields: `/api/odoo/products?fields=all`
+- With related info: `/api/odoo/products?expand=category,uom,taxes`
+- With attributes and images: `/api/odoo/products?model=product.product&expand=attributes,images&imageSize=image_1024&limit=100`
 
 ### POS diagnostics
 GET `/api/odoo/pos`
