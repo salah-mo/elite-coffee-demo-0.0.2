@@ -1,22 +1,22 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 /**
  * Authentication middleware
  * Verifies JWT token from Authorization header
  */
 export async function authMiddleware(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = request.headers.get("authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
-      { success: false, error: 'Unauthorized' },
-      { status: 401 }
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
     );
   }
-  
+
   const token = authHeader.substring(7);
-  
+
   try {
     // TODO: Implement JWT verification
     // const payload = await verifyJWT(token);
@@ -24,8 +24,8 @@ export async function authMiddleware(request: NextRequest) {
     return null; // Continue to route handler
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: 'Invalid token' },
-      { status: 401 }
+      { success: false, error: "Invalid token" },
+      { status: 401 },
     );
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosInstance } from 'axios';
-import https from 'node:https';
-import type { Order, OrderItem } from '@/types';
+import axios, { AxiosInstance } from "axios";
+import https from "node:https";
+import type { Order, OrderItem } from "@/types";
 
 export interface OdooConfig {
   host: string; // e.g. https://odoo.example.com:8069
@@ -13,14 +13,14 @@ export interface OdooConfig {
 }
 
 interface JsonRpcRequest {
-  jsonrpc: '2.0';
-  method: 'call';
+  jsonrpc: "2.0";
+  method: "call";
   params: Record<string, unknown>;
   id?: number | string;
 }
 
 interface JsonRpcResponse<T = any> {
-  jsonrpc: '2.0';
+  jsonrpc: "2.0";
   id?: number | string | null;
   result?: T;
   error?: { code: number; message: string; data?: unknown };
@@ -29,9 +29,9 @@ interface JsonRpcResponse<T = any> {
 export function isOdooConfigured(): boolean {
   return Boolean(
     process.env.ODOO_HOST &&
-    process.env.ODOO_DB &&
-    process.env.ODOO_USERNAME &&
-    (process.env.ODOO_API_KEY || process.env.ODOO_PASSWORD)
+      process.env.ODOO_DB &&
+      process.env.ODOO_USERNAME &&
+      (process.env.ODOO_API_KEY || process.env.ODOO_PASSWORD),
   );
 }
 
@@ -45,8 +45,7 @@ export function getOdooConfigFromEnv(): OdooConfig | null {
     timeoutMs: process.env.ODOO_TIMEOUT_MS
       ? Number(process.env.ODOO_TIMEOUT_MS)
       : 20000,
-    insecureSSL:
-      (process.env.ODOO_INSECURE_SSL || '').toLowerCase() === 'true',
+    insecureSSL: (process.env.ODOO_INSECURE_SSL || "").toLowerCase() === "true",
   };
 }
 
@@ -58,9 +57,9 @@ export class OdooClient {
   constructor(config: OdooConfig) {
     this.config = config;
     this.axios = axios.create({
-      baseURL: config.host.replace(/\/$/, ''),
+      baseURL: config.host.replace(/\/$/, ""),
       timeout: config.timeoutMs ?? 20000,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       httpsAgent: config.insecureSSL
         ? new https.Agent({ rejectUnauthorized: false })
         : undefined,
@@ -73,24 +72,24 @@ export class OdooClient {
 
     // Use JSON-RPC 'common' service authenticate (works with API keys)
     const payload: JsonRpcRequest = {
-      jsonrpc: '2.0',
-      method: 'call',
+      jsonrpc: "2.0",
+      method: "call",
       params: {
-        service: 'common',
-        method: 'authenticate',
+        service: "common",
+        method: "authenticate",
         args: [this.config.db, this.config.username, this.config.password, {}],
       },
       id: Date.now(),
     };
 
     const { data } = await this.axios.post<JsonRpcResponse<number | false>>(
-      '/jsonrpc',
-      payload
+      "/jsonrpc",
+      payload,
     );
     if (data?.error) {
       throw new Error(`Odoo auth failed: ${JSON.stringify(data.error)}`);
     }
-    if (typeof data?.result === 'number' && data.result > 0) {
+    if (typeof data?.result === "number" && data.result > 0) {
       this.uid = data.result;
       return this.uid;
     }
@@ -101,15 +100,15 @@ export class OdooClient {
     model: string,
     method: string,
     args: any[] = [],
-    kwargs: Record<string, unknown> = {}
+    kwargs: Record<string, unknown> = {},
   ): Promise<T> {
     const uid = await this.authenticate();
     const payload: JsonRpcRequest = {
-      jsonrpc: '2.0',
-      method: 'call',
+      jsonrpc: "2.0",
+      method: "call",
       params: {
-        service: 'object',
-        method: 'execute_kw',
+        service: "object",
+        method: "execute_kw",
         args: [
           this.config.db,
           uid,
@@ -124,14 +123,14 @@ export class OdooClient {
     };
 
     const { data } = await this.axios.post<JsonRpcResponse<T>>(
-      '/jsonrpc',
-      payload
+      "/jsonrpc",
+      payload,
     );
     if (data?.error) {
       throw new Error(
         `Odoo RPC error: ${data.error.message} :: ${JSON.stringify(
-          data.error.data
-        )}`
+          data.error.data,
+        )}`,
       );
     }
     return data.result as T;
@@ -142,25 +141,29 @@ export class OdooClient {
     model: string,
     domain: any[] = [],
     fields?: string[],
-    kwargs: Record<string, unknown> = {}
+    kwargs: Record<string, unknown> = {},
   ): Promise<T[]> {
-    const options = { ...(fields ? { fields } : {}), ...kwargs } as Record<string, unknown>;
-    return this.rpc<T[]>(model, 'search_read', [domain], options);
+    const options = { ...(fields ? { fields } : {}), ...kwargs } as Record<
+      string,
+      unknown
+    >;
+    return this.rpc<T[]>(model, "search_read", [domain], options);
   }
 
   /** Generic search_count helper */
   async searchCount(model: string, domain: any[] = []): Promise<number> {
-    return this.rpc<number>(model, 'search_count', [domain]);
+    return this.rpc<number>(model, "search_count", [domain]);
   }
 
   /**
    * Lightweight connectivity check.
    * Authenticates and performs a tiny RPC (search_count on res.partner).
    */
-  async ping(): Promise<{ uid: number; partnerCount: number }>
-  {
+  async ping(): Promise<{ uid: number; partnerCount: number }> {
     const uid = await this.authenticate();
-    const partnerCount = await this.rpc<number>('res.partner', 'search_count', [[]]);
+    const partnerCount = await this.rpc<number>("res.partner", "search_count", [
+      [],
+    ]);
     return { uid, partnerCount };
   }
 
@@ -174,45 +177,45 @@ export class OdooClient {
     country_id?: number; // optional, if looked up
   }): Promise<number> {
     const searchDomain = partnerData.email
-      ? [['email', '=', partnerData.email]]
+      ? [["email", "=", partnerData.email]]
       : partnerData.phone
-        ? [['phone', '=', partnerData.phone]]
-        : [['name', '=', partnerData.name]];
+        ? [["phone", "=", partnerData.phone]]
+        : [["name", "=", partnerData.name]];
 
-    const ids = await this.rpc<number[]>(
-      'res.partner',
-      'search',
-      [searchDomain, 0, 1]
-    );
+    const ids = await this.rpc<number[]>("res.partner", "search", [
+      searchDomain,
+      0,
+      1,
+    ]);
 
     if (ids && ids.length) {
       // Optionally update basic fields
       try {
-        await this.rpc('res.partner', 'write', [ids, partnerData]);
+        await this.rpc("res.partner", "write", [ids, partnerData]);
       } catch (_) {
         // ignore write failures to avoid blocking
       }
       return ids[0];
     }
 
-    const id = await this.rpc<number>('res.partner', 'create', [partnerData]);
+    const id = await this.rpc<number>("res.partner", "create", [partnerData]);
     return id;
   }
 
-  private async findOrCreateProduct(item: Pick<OrderItem, 'menuItemId' | 'unitPrice' | 'menuItem'>): Promise<number> {
+  private async findOrCreateProduct(
+    item: Pick<OrderItem, "menuItemId" | "unitPrice" | "menuItem">,
+  ): Promise<number> {
     // Use website menuItemId as SKU (default_code). Fallback by name.
     const sku = item.menuItemId;
     const name = item.menuItem?.name || item.menuItemId;
 
-    const domain = sku
-      ? [['default_code', '=', sku]]
-      : [['name', '=', name]];
+    const domain = sku ? [["default_code", "=", sku]] : [["name", "=", name]];
 
-    const prodIds = await this.rpc<number[]>(
-      'product.product',
-      'search',
-      [domain, 0, 1]
-    );
+    const prodIds = await this.rpc<number[]>("product.product", "search", [
+      domain,
+      0,
+      1,
+    ]);
 
     if (prodIds && prodIds.length) return prodIds[0];
 
@@ -223,30 +226,31 @@ export class OdooClient {
       list_price: item.unitPrice,
       sale_ok: true,
       purchase_ok: false,
-      type: 'consu',
+      type: "consu",
     };
-    const productId = await this.rpc<number>(
-      'product.product',
-      'create',
-      [productVals]
-    );
+    const productId = await this.rpc<number>("product.product", "create", [
+      productVals,
+    ]);
     return productId;
   }
 
-  async createSaleOrderFromWebsiteOrder(websiteOrder: Order, partnerHint?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    street?: string;
-    city?: string;
-    zip?: string;
-  }): Promise<number> {
+  async createSaleOrderFromWebsiteOrder(
+    websiteOrder: Order,
+    partnerHint?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      street?: string;
+      city?: string;
+      zip?: string;
+    },
+  ): Promise<number> {
     // Idempotency: search by client_order_ref
     const existing = await this.rpc<number[]>(
-      'sale.order',
-      'search',
-      [[['client_order_ref', '=', websiteOrder.id]]],
-      { limit: 1 }
+      "sale.order",
+      "search",
+      [[["client_order_ref", "=", websiteOrder.id]]],
+      { limit: 1 },
     );
     if (existing && existing.length) return existing[0];
 
@@ -260,7 +264,7 @@ export class OdooClient {
     });
 
     const lines: any[] = [];
-  for (const line of websiteOrder.items) {
+    for (const line of websiteOrder.items) {
       const productId = await this.findOrCreateProduct({
         menuItemId: line.menuItemId,
         unitPrice: line.unitPrice,
@@ -290,20 +294,22 @@ export class OdooClient {
         `Created from website order ${websiteOrder.orderNumber}`,
     };
 
-    const saleId = await this.rpc<number>('sale.order', 'create', [saleVals]);
+    const saleId = await this.rpc<number>("sale.order", "create", [saleVals]);
     return saleId;
   }
 
   /** Check whether a given model is available in this Odoo DB */
   async modelExists(modelName: string): Promise<boolean> {
-    const count = await this.rpc<number>('ir.model', 'search_count', [[['model', '=', modelName]]]);
+    const count = await this.rpc<number>("ir.model", "search_count", [
+      [["model", "=", modelName]],
+    ]);
     return (count || 0) > 0;
   }
 
   /** Confirm a sale order (turn quotation into order). Requires Sales app. */
   async confirmSaleOrder(saleId: number): Promise<boolean> {
     // action_confirm expects a list of IDs
-    await this.rpc('sale.order', 'action_confirm', [[saleId]]);
+    await this.rpc("sale.order", "action_confirm", [[saleId]]);
     return true;
   }
 
@@ -313,16 +319,25 @@ export class OdooClient {
 
   /** Get minimal list of POS configs */
   async getPosConfigs(): Promise<Array<{ id: number; name: string }>> {
-    return this.searchRead('pos.config', [['active', '=', true]], ['id', 'name']);
+    return this.searchRead(
+      "pos.config",
+      [["active", "=", true]],
+      ["id", "name"],
+    );
   }
 
   /** Get an open POS session for a given config (if any) */
   async getOpenPosSession(configId: number): Promise<number | null> {
     const ids = await this.rpc<number[]>(
-      'pos.session',
-      'search',
-      [[['config_id', '=', configId], ['state', '=', 'opened']]],
-      { limit: 1 }
+      "pos.session",
+      "search",
+      [
+        [
+          ["config_id", "=", configId],
+          ["state", "=", "opened"],
+        ],
+      ],
+      { limit: 1 },
     );
     return ids?.length ? ids[0] : null;
   }
@@ -330,12 +345,21 @@ export class OdooClient {
   /** Ensure the given product can be sold in POS (available_in_pos on product template) */
   private async ensureProductAvailableInPOS(productId: number): Promise<void> {
     try {
-      const prod = await this.searchRead<any>('product.product', [['id', '=', productId]], ['id', 'product_tmpl_id', 'available_in_pos']);
+      const prod = await this.searchRead<any>(
+        "product.product",
+        [["id", "=", productId]],
+        ["id", "product_tmpl_id", "available_in_pos"],
+      );
       if (!prod?.length) return;
-      const tmplId = Array.isArray(prod[0].product_tmpl_id) ? prod[0].product_tmpl_id[0] : prod[0].product_tmpl_id;
+      const tmplId = Array.isArray(prod[0].product_tmpl_id)
+        ? prod[0].product_tmpl_id[0]
+        : prod[0].product_tmpl_id;
       const available = Boolean(prod[0].available_in_pos);
       if (!available && tmplId) {
-        await this.rpc('product.template', 'write', [[tmplId], { available_in_pos: true }]);
+        await this.rpc("product.template", "write", [
+          [tmplId],
+          { available_in_pos: true },
+        ]);
       }
     } catch (_) {
       // non-fatal
@@ -358,18 +382,30 @@ export class OdooClient {
       city?: string;
       zip?: string;
     },
-    options?: { posConfigId?: number; posConfigName?: string; customerNotePerLine?: string }
+    options?: {
+      posConfigId?: number;
+      posConfigName?: string;
+      customerNotePerLine?: string;
+    },
   ): Promise<number> {
     // Select POS config
     let configId: number | undefined = options?.posConfigId;
     if (!configId) {
       if (options?.posConfigName) {
-        const cfg = await this.searchRead<any>('pos.config', [['name', '=', options.posConfigName]], ['id', 'name'], { limit: 1 });
+        const cfg = await this.searchRead<any>(
+          "pos.config",
+          [["name", "=", options.posConfigName]],
+          ["id", "name"],
+          { limit: 1 },
+        );
         if (cfg?.length) configId = cfg[0].id;
       }
       if (!configId) {
         const cfgs = await this.getPosConfigs();
-        if (!cfgs?.length) throw new Error('No POS configuration found (install and configure Point of Sale)');
+        if (!cfgs?.length)
+          throw new Error(
+            "No POS configuration found (install and configure Point of Sale)",
+          );
         configId = cfgs[0].id;
       }
     }
@@ -377,7 +413,9 @@ export class OdooClient {
     // Find an open POS session
     const sessionId = await this.getOpenPosSession(configId);
     if (!sessionId) {
-      throw new Error('No open POS session found. Open a POS session in Odoo to send orders to the kitchen.');
+      throw new Error(
+        "No open POS session found. Open a POS session in Odoo to send orders to the kitchen.",
+      );
     }
 
     // Partner
@@ -400,7 +438,8 @@ export class OdooClient {
       });
       await this.ensureProductAvailableInPOS(productId);
 
-      const customer_note = options?.customerNotePerLine || websiteOrder.notes || undefined;
+      const customer_note =
+        options?.customerNotePerLine || websiteOrder.notes || undefined;
       lines.push([
         0,
         0,
@@ -414,7 +453,10 @@ export class OdooClient {
       ]);
     }
 
-    const amount_total = websiteOrder.items.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const amount_total = websiteOrder.items.reduce(
+      (s, l) => s + l.quantity * l.unitPrice,
+      0,
+    );
     const uid = `webpos_${websiteOrder.id}`;
 
     const orderData: any = {
@@ -436,24 +478,26 @@ export class OdooClient {
 
     // Try modern/newer APIs first, then fall back
     const tryMethods: Array<{ name: string; payload: any[] }> = [
-      { name: 'create_orders_from_ui', payload: [[orderData]] },
-      { name: 'create_from_ui', payload: [[orderData]] },
+      { name: "create_orders_from_ui", payload: [[orderData]] },
+      { name: "create_from_ui", payload: [[orderData]] },
     ];
 
     let lastErr: any;
     for (const m of tryMethods) {
       try {
-        const res = await this.rpc<any>('pos.order', m.name, m.payload);
+        const res = await this.rpc<any>("pos.order", m.name, m.payload);
         let createdId: number | undefined;
         if (Array.isArray(res)) {
-          createdId = typeof res[0] === 'number' ? res[0] : res[0]?.id;
-        } else if (typeof res === 'number') {
+          createdId = typeof res[0] === "number" ? res[0] : res[0]?.id;
+        } else if (typeof res === "number") {
           createdId = res;
-        } else if (res && typeof res === 'object' && 'id' in res) {
+        } else if (res && typeof res === "object" && "id" in res) {
           createdId = (res as any).id;
         }
         if (createdId) return createdId;
-        lastErr = new Error(`Unexpected response from POS ${m.name}: ${JSON.stringify(res)}`);
+        lastErr = new Error(
+          `Unexpected response from POS ${m.name}: ${JSON.stringify(res)}`,
+        );
       } catch (err) {
         lastErr = err;
       }
@@ -461,18 +505,22 @@ export class OdooClient {
 
     // Last resort: try direct record creation (may not trigger KDS live events)
     try {
-      const orderId = await this.rpc<number>('pos.order', 'create', [[{
-        partner_id: partnerId,
-        session_id: sessionId,
-        amount_total,
-        amount_tax: 0,
-        amount_paid: 0,
-        amount_return: 0,
-      }]]);
+      const orderId = await this.rpc<number>("pos.order", "create", [
+        [
+          {
+            partner_id: partnerId,
+            session_id: sessionId,
+            amount_total,
+            amount_tax: 0,
+            amount_paid: 0,
+            amount_return: 0,
+          },
+        ],
+      ]);
 
       // Create lines directly
       for (const l of lines) {
-        const base = (l[2] as any);
+        const base = l[2] as any;
         const vals = {
           order_id: orderId,
           product_id: base.product_id,
@@ -481,11 +529,13 @@ export class OdooClient {
           discount: base.discount ?? 0,
           ...(base.customer_note ? { customer_note: base.customer_note } : {}),
         } as any;
-        await this.rpc('pos.order.line', 'create', [[vals]]);
+        await this.rpc("pos.order.line", "create", [[vals]]);
       }
       return orderId;
     } catch (fallbackErr) {
-      throw new Error(`Failed to create POS order via RPC methods (create_orders_from_ui/create_from_ui) and direct create. Last error: ${lastErr?.message || String(lastErr)} | Fallback error: ${(fallbackErr as any)?.message || String(fallbackErr)}`);
+      throw new Error(
+        `Failed to create POS order via RPC methods (create_orders_from_ui/create_from_ui) and direct create. Last error: ${lastErr?.message || String(lastErr)} | Fallback error: ${(fallbackErr as any)?.message || String(fallbackErr)}`,
+      );
     }
   }
 }

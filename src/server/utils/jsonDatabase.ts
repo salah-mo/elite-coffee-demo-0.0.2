@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { CartItem, Order } from '@/types';
+import fs from "fs";
+import path from "path";
+import { CartItem, Order } from "@/types";
 
 // Define the database structure
 interface Database {
@@ -9,11 +9,11 @@ interface Database {
 }
 
 // Path to the JSON database file
-const DB_PATH = path.join(process.cwd(), 'data', 'database.json');
+const DB_PATH = path.join(process.cwd(), "data", "database.json");
 
 // Ensure the data directory exists
 function ensureDataDirectory() {
-  const dataDir = path.join(process.cwd(), 'data');
+  const dataDir = path.join(process.cwd(), "data");
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
@@ -22,26 +22,26 @@ function ensureDataDirectory() {
 // Initialize database file if it doesn't exist
 function initializeDatabase(): Database {
   ensureDataDirectory();
-  
+
   if (!fs.existsSync(DB_PATH)) {
     const initialData: Database = {
       carts: {},
-      orders: []
+      orders: [],
     };
-    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
+    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), "utf-8");
     return initialData;
   }
-  
+
   try {
-    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    const data = fs.readFileSync(DB_PATH, "utf-8");
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading database file:', error);
+    console.error("Error reading database file:", error);
     const initialData: Database = {
       carts: {},
-      orders: []
+      orders: [],
     };
-    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
+    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), "utf-8");
     return initialData;
   }
 }
@@ -49,10 +49,10 @@ function initializeDatabase(): Database {
 // Read from database
 function readDatabase(): Database {
   try {
-    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    const data = fs.readFileSync(DB_PATH, "utf-8");
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading database:', error);
+    console.error("Error reading database:", error);
     return initializeDatabase();
   }
 }
@@ -61,10 +61,10 @@ function readDatabase(): Database {
 function writeDatabase(data: Database): void {
   try {
     ensureDataDirectory();
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
   } catch (error) {
-    console.error('Error writing to database:', error);
-    throw new Error('Failed to write to database');
+    console.error("Error writing to database:", error);
+    throw new Error("Failed to write to database");
   }
 }
 
@@ -89,14 +89,14 @@ export const cartDB = {
     if (!db.carts[userId]) {
       db.carts[userId] = [];
     }
-    
+
     // Check if item already exists
     const existingItemIndex = db.carts[userId].findIndex(
       (cartItem) =>
         cartItem.menuItemId === item.menuItemId &&
         cartItem.size === item.size &&
         cartItem.flavor === item.flavor &&
-        JSON.stringify(cartItem.toppings) === JSON.stringify(item.toppings)
+        JSON.stringify(cartItem.toppings) === JSON.stringify(item.toppings),
     );
 
     if (existingItemIndex > -1) {
@@ -106,7 +106,7 @@ export const cartDB = {
       // Add new item
       db.carts[userId].push(item);
     }
-    
+
     writeDatabase(db);
   },
 
@@ -114,18 +114,28 @@ export const cartDB = {
   removeItem: (userId: string, cartItemId: string): void => {
     const db = readDatabase();
     if (db.carts[userId]) {
-      db.carts[userId] = db.carts[userId].filter((item) => item.id !== cartItemId);
+      db.carts[userId] = db.carts[userId].filter(
+        (item) => item.id !== cartItemId,
+      );
       writeDatabase(db);
     }
   },
 
-  // Update item quantity
-  updateQuantity: (userId: string, cartItemId: string, quantity: number): void => {
+  // Update item quantity (also recalculates price)
+  updateQuantity: (
+    userId: string,
+    cartItemId: string,
+    quantity: number,
+  ): void => {
     const db = readDatabase();
     if (db.carts[userId]) {
       const item = db.carts[userId].find((item) => item.id === cartItemId);
       if (item) {
+        // Calculate unit price from current price/quantity
+        const unitPrice = item.price / item.quantity;
+        // Update quantity and recalculate total price
         item.quantity = quantity;
+        item.price = unitPrice * quantity;
         writeDatabase(db);
       }
     }
@@ -171,7 +181,7 @@ export const orderDB = {
   update: (orderId: string, updates: Partial<Order>): Order | null => {
     const db = readDatabase();
     const orderIndex = db.orders.findIndex((order) => order.id === orderId);
-    
+
     if (orderIndex === -1) {
       return null;
     }
@@ -186,7 +196,7 @@ export const orderDB = {
     const db = readDatabase();
     const initialLength = db.orders.length;
     db.orders = db.orders.filter((order) => order.id !== orderId);
-    
+
     if (db.orders.length < initialLength) {
       writeDatabase(db);
       return true;

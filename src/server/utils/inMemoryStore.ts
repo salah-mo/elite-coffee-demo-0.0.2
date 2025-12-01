@@ -4,7 +4,7 @@
  * Replace with actual database when ready
  */
 
-import type { CartItem, Order } from '@/types';
+import type { CartItem, Order } from "@/types";
 
 // In-memory storage
 const carts = new Map<string, CartItem[]>();
@@ -18,24 +18,24 @@ export const inMemoryStore = {
     get: (userId: string): CartItem[] => {
       return carts.get(userId) || [];
     },
-    
+
     set: (userId: string, items: CartItem[]) => {
       carts.set(userId, items);
     },
-    
+
     add: (userId: string, item: CartItem) => {
       const userCart = carts.get(userId) || [];
       userCart.push(item);
       carts.set(userId, userCart);
       return item;
     },
-    
+
     remove: (userId: string, itemId: string) => {
       const userCart = carts.get(userId) || [];
-      const filtered = userCart.filter(item => item.id !== itemId);
+      const filtered = userCart.filter((item) => item.id !== itemId);
       carts.set(userId, filtered);
     },
-    
+
     clear: (userId: string) => {
       carts.set(userId, []);
     },
@@ -46,13 +46,16 @@ export const inMemoryStore = {
     getAll: (userId: string): Order[] => {
       return orders.get(userId) || [];
     },
-    
+
     getById: (userId: string, orderId: string): Order | undefined => {
       const userOrders = orders.get(userId) || [];
-      return userOrders.find(order => order.id === orderId);
+      return userOrders.find((order) => order.id === orderId);
     },
-    
-    create: (userId: string, order: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>): Order => {
+
+    create: (
+      userId: string,
+      order: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">,
+    ): Order => {
       const userOrders = orders.get(userId) || [];
       const newOrder: Order = {
         ...order,
@@ -65,12 +68,16 @@ export const inMemoryStore = {
       orders.set(userId, userOrders);
       return newOrder;
     },
-    
-    update: (userId: string, orderId: string, updates: Partial<Order>): Order | undefined => {
+
+    update: (
+      userId: string,
+      orderId: string,
+      updates: Partial<Order>,
+    ): Order | undefined => {
       const userOrders = orders.get(userId) || [];
-      const index = userOrders.findIndex(order => order.id === orderId);
+      const index = userOrders.findIndex((order) => order.id === orderId);
       if (index === -1) return undefined;
-      
+
       userOrders[index] = {
         ...userOrders[index],
         ...updates,
