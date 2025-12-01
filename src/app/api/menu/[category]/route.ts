@@ -1,6 +1,10 @@
-import { NextRequest } from 'next/server';
-import { menuData } from '@/lib/menuData';
-import { successResponse, jsonResponse, handleApiError } from '@/server/utils/apiHelpers';
+import { NextRequest } from "next/server";
+import { menuData } from "@/lib/menuData";
+import {
+  successResponse,
+  jsonResponse,
+  handleApiError,
+} from "@/server/utils/apiHelpers";
 
 /**
  * GET /api/menu/[category]
@@ -8,17 +12,14 @@ import { successResponse, jsonResponse, handleApiError } from '@/server/utils/ap
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ category: string }> }
+  { params }: { params: Promise<{ category: string }> },
 ) {
   try {
     const { category: categoryId } = await params;
-    const category = menuData.find(cat => cat.id === categoryId);
-    
+    const category = menuData.find((cat) => cat.id === categoryId);
+
     if (!category) {
-      return jsonResponse(
-        { success: false, error: 'Category not found' },
-        404
-      );
+      return jsonResponse({ success: false, error: "Category not found" }, 404);
     }
 
     return jsonResponse(successResponse(category));

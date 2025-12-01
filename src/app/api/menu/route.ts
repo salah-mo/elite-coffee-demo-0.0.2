@@ -1,6 +1,10 @@
-import { NextRequest } from 'next/server';
-import { menuData } from '@/lib/menuData';
-import { successResponse, jsonResponse, handleApiError } from '@/server/utils/apiHelpers';
+import { NextRequest } from "next/server";
+import { menuData } from "@/lib/menuData";
+import {
+  successResponse,
+  jsonResponse,
+  handleApiError,
+} from "@/server/utils/apiHelpers";
 
 /**
  * GET /api/menu

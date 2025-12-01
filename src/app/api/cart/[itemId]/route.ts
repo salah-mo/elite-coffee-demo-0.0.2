@@ -1,13 +1,13 @@
-import { NextRequest } from 'next/server';
-import { cartDB } from '@/server/utils/jsonDatabase';
-import { 
-  successResponse, 
-  jsonResponse, 
+import { NextRequest } from "next/server";
+import { cartDB } from "@/server/utils/jsonDatabase";
+import {
+  successResponse,
+  jsonResponse,
   handleApiError,
-  parseRequestBody 
-} from '@/server/utils/apiHelpers';
-import { updateCartItemSchema } from '@/server/validators/cartSchemas';
-import { BadRequestError } from '@/server/utils/errors';
+  parseRequestBody,
+} from "@/server/utils/apiHelpers";
+import { updateCartItemSchema } from "@/server/validators/cartSchemas";
+import { BadRequestError } from "@/server/utils/errors";
 
 /**
  * DELETE /api/cart/[itemId]
@@ -15,15 +15,15 @@ import { BadRequestError } from '@/server/utils/errors';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string }> }
+  { params }: { params: Promise<{ itemId: string }> },
 ) {
   try {
-    const userId = request.headers.get('x-user-id') || 'demo-user';
+    const userId = request.headers.get("x-user-id") || "demo-user";
     const { itemId } = await params;
-    
+
     cartDB.removeItem(userId, itemId);
 
-    return jsonResponse(successResponse(null, 'Item removed from cart'));
+    return jsonResponse(successResponse(null, "Item removed from cart"));
   } catch (error) {
     return handleApiError(error);
   }
@@ -35,20 +35,24 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string }> }
+  { params }: { params: Promise<{ itemId: string }> },
 ) {
   try {
-    const userId = request.headers.get('x-user-id') || 'demo-user';
+    const userId = request.headers.get("x-user-id") || "demo-user";
     const { itemId } = await params;
     const raw = await parseRequestBody(request);
     const { quantity } = updateCartItemSchema.parse(raw);
 
+    console.log("PATCH request received:", { userId, itemId, quantity }); // Debug log
+
     cartDB.updateQuantity(userId, itemId, quantity);
 
-    return jsonResponse(successResponse(null, 'Cart item updated'));
+    console.log("Cart item updated successfully"); // Debug log
+    return jsonResponse(successResponse(null, "Cart item updated"));
   } catch (error) {
-    if (error instanceof Error && 'issues' in error) {
-      return handleApiError(new BadRequestError('Invalid request body'));
+    console.error("Error in PATCH method:", error); // Debug log
+    if (error instanceof Error && "issues" in error) {
+      return handleApiError(new BadRequestError("Invalid request body"));
     }
     return handleApiError(error);
   }
