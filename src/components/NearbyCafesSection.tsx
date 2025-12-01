@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Image from 'next/image';
-import { MapPin, Clock, Navigation, MessageCircle } from 'lucide-react';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
+import { MapPin, Clock, Navigation, MessageCircle } from "lucide-react";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -15,15 +15,17 @@ export default function NearbyCafesSection() {
 
   useEffect(() => {
     // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     if (prefersReducedMotion) {
       // Simple fade in for map image only
       gsap.set(mapRef.current, {
         opacity: 0,
-        y: 20
+        y: 20,
       });
-      
+
       gsap.to(mapRef.current, {
         opacity: 1,
         y: 0,
@@ -32,8 +34,8 @@ export default function NearbyCafesSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 80%",
-          toggleActions: "play none none none"
-        }
+          toggleActions: "play none none none",
+        },
       });
       return;
     }
@@ -43,7 +45,7 @@ export default function NearbyCafesSection() {
     gsap.set(mapRef.current, {
       opacity: 0,
       scale: 0.8,
-      rotationY: -15
+      rotationY: -15,
     });
 
     // Create main timeline
@@ -51,8 +53,8 @@ export default function NearbyCafesSection() {
       scrollTrigger: {
         trigger: sectionRef.current,
         start: "top 80%",
-        toggleActions: "play none none none" // Only play once
-      }
+        toggleActions: "play none none none", // Only play once
+      },
     });
 
     // Animate map with 3D effect
@@ -61,12 +63,12 @@ export default function NearbyCafesSection() {
       scale: 1,
       rotationY: 0,
       duration: 1,
-      ease: "power2.out"
+      ease: "power2.out",
     });
 
     // Cleanup function
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 
@@ -74,22 +76,27 @@ export default function NearbyCafesSection() {
     name: "Elite Cafee",
     address: "Faiyum, Governorate Club, next to the Governor's Villa",
     addressArabic: "الفيوم، نادي المحافظة، بجوار فيلا المحافظ",
-    hours: "8 AM - 3 PM Daily"
+    hours: "8 AM - 3 PM Daily",
   };
 
   const handleGetDirections = () => {
     // Open Google Maps with the exact Elite Cafee location URL
-    const url = "https://www.google.com/maps/place/Elite+Cafee/@29.3190758,30.8404869,18.21z/data=!4m9!1m2!2m1!1s8R9R+QG4!3m5!1s0x14597900550ac2a3:0xdb13f17e857326d2!8m2!3d29.3193963!4d30.8413192!16s%2Fg%2F11xmm9t3xb?entry=ttu&g_ep=EgoyMDI1MDcxNi4wIKXMDSoASAFQAw%3D%3D";
-    window.open(url, '_blank');
+    const url =
+      "https://www.google.com/maps/place/Elite+Cafee/@29.3190758,30.8404869,18.21z/data=!4m9!1m2!2m1!1s8R9R+QG4!3m5!1s0x14597900550ac2a3:0xdb13f17e857326d2!8m2!3d29.3193963!4d30.8413192!16s%2Fg%2F11xmm9t3xb?entry=ttu&g_ep=EgoyMDI1MDcxNi4wIKXMDSoASAFQAw%3D%3D";
+    window.open(url, "_blank");
   };
 
   const handleContact = () => {
     // Open Facebook messenger for Elite Cafee page
-    window.open('https://m.me/61577901386334', '_blank');
+    window.open("https://m.me/61577901386334", "_blank");
   };
 
   return (
-    <section ref={sectionRef} id="location" className="bg-elite-cream relative py-20 lg:py-32">
+    <section
+      ref={sectionRef}
+      id="location"
+      className="bg-elite-cream relative py-20 lg:py-32"
+    >
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Modern Section Header */}
         <div className="text-center mb-16 lg:mb-20">
@@ -106,7 +113,7 @@ export default function NearbyCafesSection() {
         {/* Main Content - Modern Card Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-16">
           {/* Interactive Map Card */}
-          <div 
+          <div
             ref={mapRef}
             className="group relative rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-700 h-[450px] lg:h-[500px] cursor-pointer transform hover:scale-[1.02]"
             onClick={handleGetDirections}
@@ -122,10 +129,10 @@ export default function NearbyCafesSection() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority={false}
             />
-            
+
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+
             {/* Floating Location Card */}
             <div className="absolute bottom-6 left-6 right-6">
               <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
@@ -134,8 +141,12 @@ export default function NearbyCafesSection() {
                     <MapPin className="w-6 h-6 text-elite-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-elite-black font-cabin font-bold text-lg">Elite Cafee</p>
-                    <p className="text-elite-black/70 font-cabin text-sm">Tap to get directions</p>
+                    <p className="text-elite-black font-cabin font-bold text-lg">
+                      Elite Cafee
+                    </p>
+                    <p className="text-elite-black/70 font-cabin text-sm">
+                      Tap to get directions
+                    </p>
                   </div>
                   <Navigation className="w-5 h-5 text-elite-black/60 group-hover:text-elite-black transition-colors duration-300" />
                 </div>
@@ -162,7 +173,10 @@ export default function NearbyCafesSection() {
                     <p className="text-elite-black font-cabin text-lg leading-relaxed">
                       {cafe.address}
                     </p>
-                    <p className="text-elite-black font-cabin text-base leading-relaxed" dir="rtl">
+                    <p
+                      className="text-elite-black font-cabin text-base leading-relaxed"
+                      dir="rtl"
+                    >
                       {cafe.addressArabic}
                     </p>
                   </div>
@@ -178,13 +192,15 @@ export default function NearbyCafesSection() {
               </div>
 
               {/* CTA Button */}
-              <button 
+              <button
                 onClick={handleGetDirections}
                 className="group relative w-full bg-gradient-to-r from-elite-burgundy to-elite-dark-burgundy text-elite-black font-cabin font-bold text-xl py-5 px-8 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden border-2 border-elite-burgundy/50 hover:border-elite-burgundy"
               >
                 <span className="relative z-10 flex items-center justify-center space-x-3">
                   <Navigation className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="group-hover:scale-105 transition-transform duration-300">Get Directions</span>
+                  <span className="group-hover:scale-105 transition-transform duration-300">
+                    Get Directions
+                  </span>
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-elite-dark-burgundy to-elite-burgundy opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
@@ -201,7 +217,7 @@ export default function NearbyCafesSection() {
             <p className="text-elite-black font-cabin text-lg md:text-xl mb-8 max-w-2xl mx-auto">
               We're here to help you find your way to the perfect cup of coffee
             </p>
-            <button 
+            <button
               onClick={handleContact}
               className="group inline-flex items-center space-x-3 bg-elite-burgundy text-elite-white font-cabin font-bold text-lg py-4 px-8 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
@@ -213,4 +229,4 @@ export default function NearbyCafesSection() {
       </div>
     </section>
   );
-} 
+}
