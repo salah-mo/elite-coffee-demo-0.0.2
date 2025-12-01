@@ -1,0 +1,10 @@
+{
+  "partner": { "name": "API Customer", "email": "api@example.com" },
+  "items": [
+    { "menuItemId": "WATER-500ML", "name": "Water 500ml", "quantity": 14, "unitPrice": 10 }
+  ],
+  "notes": "Sales order test for 14 water",
+  "autoConfirm": true,
+  "orderNumber": "WEB-SALES-TEST-14-WATER",
+  "userId": "website-user"
+}

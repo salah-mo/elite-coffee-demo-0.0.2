@@ -1,8 +1,15 @@
-import { getCategoryById, getSubCategoryById, getItemById, getRecommendedItems, getAllCategories, MenuItem } from '@/lib/menuData';
-import { notFound } from 'next/navigation';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import ItemDetailClient from '@/components/ItemDetailClient';
+import {
+  getCategoryById,
+  getSubCategoryById,
+  getItemById,
+  getRecommendedItems,
+  getAllCategories,
+  MenuItem,
+} from "@/lib/menuData";
+import { notFound } from "next/navigation";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import ItemDetailClient from "@/components/ItemDetailClient";
 
 /**
  * Generate static params for all menu items
@@ -12,7 +19,7 @@ import ItemDetailClient from '@/components/ItemDetailClient';
 export async function generateStaticParams() {
   const categories = getAllCategories();
   const params = [];
-  
+
   // Generate params for all category-subcategory-item combinations
   // This ensures all item detail pages are generated at build time
   for (const category of categories) {
@@ -26,13 +33,21 @@ export async function generateStaticParams() {
       }
     }
   }
-  
+
   return params;
 }
 
-export default async function ItemDetailPage({ params }: { params: Promise<{ category: string; subcategory: string; item: string }> }) {
-  const { category: categoryId, subcategory: subCategoryId, item: itemId } = await params;
-  
+export default async function ItemDetailPage({
+  params,
+}: {
+  params: Promise<{ category: string; subcategory: string; item: string }>;
+}) {
+  const {
+    category: categoryId,
+    subcategory: subCategoryId,
+    item: itemId,
+  } = await params;
+
   const category = getCategoryById(categoryId);
   const subCategory = getSubCategoryById(categoryId, subCategoryId);
   const item = getItemById(itemId);
@@ -43,16 +58,16 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ cat
   }
 
   const recommendedItems = getRecommendedItems(item);
-  
+
   // Get the actual recommended items data
   const recommendedItemsData = recommendedItems
-    .map(rec => getItemById(rec.itemId))
+    .map((rec) => getItemById(rec.itemId))
     .filter((item): item is MenuItem => item !== undefined);
 
   return (
     <main className="page-transition loaded">
       <Navigation />
-      <ItemDetailClient 
+      <ItemDetailClient
         item={item}
         category={category}
         subCategory={subCategory}
@@ -63,4 +78,4 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ cat
       <Footer />
     </main>
   );
-} 
+}

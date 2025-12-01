@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -13,15 +13,17 @@ export default function TestimonialsSection() {
 
   useEffect(() => {
     // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     if (prefersReducedMotion) {
       // Simple fade in for image only
       gsap.set(imageRef.current, {
         opacity: 0,
-        y: 20
+        y: 20,
       });
-      
+
       gsap.to(imageRef.current, {
         opacity: 1,
         y: 0,
@@ -30,8 +32,8 @@ export default function TestimonialsSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 80%",
-          toggleActions: "play none none none"
-        }
+          toggleActions: "play none none none",
+        },
       });
       return;
     }
@@ -41,7 +43,7 @@ export default function TestimonialsSection() {
     gsap.set(imageRef.current, {
       opacity: 0,
       scale: 0.8,
-      rotationY: -15
+      rotationY: -15,
     });
 
     // Create main timeline
@@ -49,8 +51,8 @@ export default function TestimonialsSection() {
       scrollTrigger: {
         trigger: sectionRef.current,
         start: "top 80%",
-        toggleActions: "play none none none" // Only play once
-      }
+        toggleActions: "play none none none", // Only play once
+      },
     });
 
     // Animate image with 3D effect
@@ -59,46 +61,55 @@ export default function TestimonialsSection() {
       scale: 1,
       rotationY: 0,
       duration: 1,
-      ease: "power2.out"
+      ease: "power2.out",
     });
 
     // Cleanup function
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 
   const testimonials = [
     {
-      quote: "The coffee here is absolutely incredible. Every sip feels like a moment of pure joy. The baristas really know their craft and it shows in every cup.",
+      quote:
+        "The coffee here is absolutely incredible. Every sip feels like a moment of pure joy. The baristas really know their craft and it shows in every cup.",
       author: "Sarah Chen",
       descriptor: "Coffee Enthusiast",
-      rating: 5
+      rating: 5,
     },
     {
-      quote: "This place has become my second home. The atmosphere is so welcoming and the pastries are to die for. Perfect spot for working or catching up with friends.",
+      quote:
+        "This place has become my second home. The atmosphere is so welcoming and the pastries are to die for. Perfect spot for working or catching up with friends.",
       author: "Marcus Rodriguez",
       descriptor: "Regular Customer",
-      rating: 5
+      rating: 5,
     },
     {
-      quote: "I love how they source everything locally. You can taste the difference in quality. Plus, the staff remembers your name and preferences.",
+      quote:
+        "I love how they source everything locally. You can taste the difference in quality. Plus, the staff remembers your name and preferences.",
       author: "Emma Thompson",
       descriptor: "Local Resident",
-      rating: 5
-    }
+      rating: 5,
+    },
   ];
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={i < rating ? "text-yellow-400" : "text-gray-200"}>
+      <span
+        key={i}
+        className={i < rating ? "text-yellow-400" : "text-gray-200"}
+      >
         ★
       </span>
     ));
   };
 
   return (
-    <section ref={sectionRef} className="bg-elite-cream relative overflow-hidden py-12 lg:py-20">
+    <section
+      ref={sectionRef}
+      className="bg-elite-cream relative overflow-hidden py-12 lg:py-20"
+    >
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-elite-burgundy rounded-full blur-3xl"></div>
@@ -109,7 +120,8 @@ export default function TestimonialsSection() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="font-calistoga text-elite-black text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight mb-6">
-            What People<br />
+            What People
+            <br />
             <span className="text-elite-burgundy">Love About Us</span>
           </h2>
           <p className="text-elite-black font-cabin text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
@@ -159,7 +171,7 @@ export default function TestimonialsSection() {
 
           {/* Right Column - Single Image */}
           <div className="lg:col-span-1 h-full">
-            <div 
+            <div
               ref={imageRef}
               className="relative group rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 h-full min-h-[600px] lg:min-h-[700px] xl:min-h-[800px]"
             >
@@ -172,7 +184,9 @@ export default function TestimonialsSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl z-10 group-hover:opacity-0 transition-opacity duration-300"></div>
               <div className="absolute bottom-4 left-4 z-20">
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2">
-                  <p className="text-elite-black font-cabin text-sm font-medium">Crafted with Love</p>
+                  <p className="text-elite-black font-cabin text-sm font-medium">
+                    Crafted with Love
+                  </p>
                 </div>
               </div>
             </div>
@@ -181,4 +195,4 @@ export default function TestimonialsSection() {
       </div>
     </section>
   );
-} 
+}

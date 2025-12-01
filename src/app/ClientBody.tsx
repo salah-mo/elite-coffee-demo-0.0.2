@@ -1,72 +1,83 @@
 "use client";
 
 import { useEffect } from "react";
-import { createNavigationState, cleanupNavigationState, preventLayoutShift, resetPageState } from "@/lib/utils";
+import { ToastProvider } from "@/components/ToastProvider";
+import {
+  createNavigationState,
+  cleanupNavigationState,
+  preventLayoutShift,
+  resetPageState,
+} from "@/lib/utils";
 
 export default function ClientBody({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Handle body classes to prevent hydration mismatches
+  // Handle initialization after hydration is complete
   useEffect(() => {
-    // Ensure the body has the correct classes
-    const body = document.body;
-    if (body) {
-      // Remove any extension-added classes that might cause hydration issues
-      const classesToRemove = ['vsc-initialized', 'vscode-initialized'];
-      classesToRemove.forEach(className => {
-        if (body.classList.contains(className)) {
-          body.classList.remove(className);
-        }
-      });
-      
-      // Ensure antialiased class is present
-      if (!body.classList.contains('antialiased')) {
-        body.classList.add('antialiased');
-      }
-    }
+    // Ensure we're in the browser
+    if (typeof window === "undefined" || typeof document === "undefined") return;
 
-    // Initialize navigation state
-    createNavigationState();
-    
-    // Prevent layout shifts
-    preventLayoutShift();
+    try {
+      // Initialize navigation state
+      createNavigationState();
+      
+      // Prevent layout shifts
+      preventLayoutShift();
+    } catch (error) {
+      console.warn("Failed to initialize client state:", error);
+    }
 
     // Cleanup on unmount
     return () => {
-      cleanupNavigationState();
+      try {
+        cleanupNavigationState();
+      } catch (error) {
+        console.warn("Failed to cleanup navigation state:", error);
+      }
     };
   }, []);
 
   // Handle page visibility changes
   useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Reset page state when page becomes visible again
-        resetPageState();
+      if (document.visibilityState === "visible") {
+        try {
+          resetPageState();
+        } catch (error) {
+          console.warn("Failed to reset page state:", error);
+        }
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
   // Handle beforeunload to clean up state
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleBeforeUnload = () => {
-      cleanupNavigationState();
+      try {
+        cleanupNavigationState();
+      } catch (error) {
+        console.warn("Failed to cleanup on beforeunload:", error);
+      }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 
-  return <>{children}</>;
+  return <ToastProvider>{children}</ToastProvider>;
 }

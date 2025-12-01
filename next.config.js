@@ -1,16 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  distDir: 'out',
-  allowedDevOrigins: ["*.preview.same-app.com"],
+  // Disable devtools to fix Next.js 15.5.6 bug
+  // "Cannot read properties of undefined (reading 'includes')"
+  devIndicators: {
+    appIsrStatus: false,
+    buildActivity: false,
+  },
+  
   images: {
-    unoptimized: true,
-    domains: [
-      "source.unsplash.com",
-      "images.unsplash.com",
-      "ext.same-assets.com",
-      "ugc.same-assets.com",
-    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -30,6 +27,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "ugc.same-assets.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.prod.website-files.com",
         pathname: "/**",
       },
     ],

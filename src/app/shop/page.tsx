@@ -1,12 +1,12 @@
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { ShoppingBag, Star, Sparkles } from 'lucide-react';
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { ShoppingBag, Star, Sparkles } from "lucide-react";
 
 export default function ShopPage() {
   return (
     <main>
       <Navigation />
-      
+
       <div className="min-h-screen bg-elite-cream">
         {/* Header */}
         <div className="bg-elite-burgundy text-elite-cream py-20 relative overflow-hidden">
@@ -16,7 +16,7 @@ export default function ShopPage() {
             <div className="absolute bottom-10 right-10 w-24 h-24 border border-elite-cream/30 rounded-full"></div>
             <div className="absolute top-1/2 left-1/4 w-16 h-16 border border-elite-cream/20 rounded-full"></div>
           </div>
-          
+
           <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
             <div className="flex justify-center mb-8">
               <div className="w-24 h-24 bg-elite-cream/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-elite-cream/30">
@@ -61,44 +61,43 @@ export default function ShopPage() {
                 <h2 className="font-calistoga text-elite-burgundy text-5xl md:text-6xl lg:text-7xl font-bold mb-8">
                   Coming Soon!
                 </h2>
-              {/* Call to Action */}
-              <div className="bg-gradient-to-r from-elite-burgundy/10 to-elite-dark-burgundy/10 rounded-3xl p-8">
-                <h3 className="font-calistoga text-elite-burgundy text-2xl font-bold mb-4">
-                  Stay Updated
-                </h3>
-                <p className="font-cabin text-elite-black/80 text-lg mb-6">
-                  Be the first to know when our shop opens. Follow us on social media for updates!
-                </p>
-                <div className="flex justify-center space-x-4">
-                  <a 
-                    href="https://instagram.com/officieleliteeg" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
-                  >
-                    Follow on Instagram
-                  </a>
-                  <a
-                    href="https://facebook.com/officieleliteeg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
-                  >
-                    Follow on Facebook
-                  </a>
-                  <a
-                    href="https://tiktok.com/@officieleliteeg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
-                  >
-                    Follow on TikTok
-                  </a>
+                {/* Call to Action */}
+                <div className="bg-gradient-to-r from-elite-burgundy/10 to-elite-dark-burgundy/10 rounded-3xl p-8">
+                  <h3 className="font-calistoga text-elite-burgundy text-2xl font-bold mb-4">
+                    Stay Updated
+                  </h3>
+                  <p className="font-cabin text-elite-black/80 text-lg mb-6">
+                    Be the first to know when our shop opens. Follow us on
+                    social media for updates!
+                  </p>
+                  <div className="flex justify-center space-x-4">
+                    <a
+                      href="https://instagram.com/officieleliteeg"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
+                    >
+                      Follow on Instagram
+                    </a>
+                    <a
+                      href="https://facebook.com/officieleliteeg"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
+                    >
+                      Follow on Facebook
+                    </a>
+                    <a
+                      href="https://tiktok.com/@officieleliteeg"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-elite-burgundy text-elite-cream px-6 py-3 rounded-full font-cabin font-semibold hover:bg-elite-dark-burgundy transition-all duration-300 hover:scale-105"
+                    >
+                      Follow on TikTok
+                    </a>
+                  </div>
                 </div>
               </div>
-              </div>
-
-
             </div>
           </div>
         </div>
