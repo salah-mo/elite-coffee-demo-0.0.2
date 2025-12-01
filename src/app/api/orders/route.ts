@@ -14,9 +14,29 @@ import {
   PaymentStatus,
   OrderType,
   type Order,
+  type MenuItem,
 } from "@/types";
 import { createOrderSchema } from "@/server/validators/orderSchemas";
 import { BadRequestError } from "@/server/utils/errors";
+
+const INTERNET_CARD_UNIT_SIZE_GB = 1.5;
+const INTERNET_CARD_UNIT_PRICE = 10;
+const INTERNET_CARD_MENU_ID = "internet-card-1_5gb";
+const INTERNET_CARD_MENU_ITEM: MenuItem = {
+  id: INTERNET_CARD_MENU_ID,
+  name: "Internet Card (1.5 GB)",
+  description: "Add 1.5 GB of internet connectivity to your order.",
+  price: INTERNET_CARD_UNIT_PRICE,
+  category: "add-ons",
+  subCategory: "connectivity",
+  images: [],
+  featured: false,
+  available: true,
+  allergens: [],
+  sizes: [],
+  flavors: [],
+  toppings: [],
+};
 
 /**
  * GET /api/orders
@@ -51,15 +71,49 @@ export async function POST(request: NextRequest) {
     const body = createOrderSchema.parse(raw);
 
     const cartItems = cartDB.get(userId);
+    const internetCardQty = body.internetCard?.quantity ?? 0;
+    const internetCardTotal = internetCardQty * INTERNET_CARD_UNIT_PRICE;
 
     if (!cartItems || cartItems.length === 0) {
+      if (internetCardQty > 0) {
+        throw new BadRequestError(
+          "Internet cards must be ordered with at least one drink",
+        );
+      }
       throw new BadRequestError("Cart is empty");
     }
 
     // Calculate totals
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const drinksSubtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const itemsSubtotal = drinksSubtotal + internetCardTotal;
     const deliveryFee = body.orderType === "DELIVERY" ? 15 : 0;
-    const total = subtotal + deliveryFee;
+    const total = itemsSubtotal + deliveryFee;
+
+    const orderItems = cartItems.map((item) => ({
+      id: `order-item-${Date.now()}-${Math.random()}`,
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+      size: item.size,
+      flavor: item.flavor,
+      toppings: item.toppings || [],
+      unitPrice: item.price / item.quantity,
+      totalPrice: item.price,
+      menuItem: item.menuItem,
+    }));
+
+    if (internetCardQty > 0) {
+      orderItems.push({
+        id: `order-item-${Date.now()}-internet-card`,
+        menuItemId: INTERNET_CARD_MENU_ID,
+        quantity: internetCardQty,
+        size: undefined,
+        flavor: undefined,
+        toppings: [],
+        unitPrice: INTERNET_CARD_UNIT_PRICE,
+        totalPrice: internetCardTotal,
+        menuItem: INTERNET_CARD_MENU_ITEM,
+      });
+    }
 
     // Create order locally first
     const order = orderDB.create({
@@ -70,23 +124,22 @@ export async function POST(request: NextRequest) {
       paymentStatus: PaymentStatus.PENDING,
       paymentMethod: body.paymentMethod,
       orderType: body.orderType,
-      subtotal,
+      subtotal: itemsSubtotal,
       deliveryFee,
       discount: 0,
       total,
       notes: body.notes,
+      internetCard:
+        internetCardQty > 0
+          ? {
+              quantity: internetCardQty,
+              unitSizeGb: INTERNET_CARD_UNIT_SIZE_GB,
+              unitPrice: INTERNET_CARD_UNIT_PRICE,
+              totalPrice: internetCardTotal,
+            }
+          : undefined,
       integrations: {},
-      items: cartItems.map((item) => ({
-        id: `order-item-${Date.now()}-${Math.random()}`,
-        menuItemId: item.menuItemId,
-        quantity: item.quantity,
-        size: item.size,
-        flavor: item.flavor,
-        toppings: item.toppings || [],
-        unitPrice: item.price / item.quantity,
-        totalPrice: item.price,
-        menuItem: item.menuItem,
-      })),
+      items: orderItems,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

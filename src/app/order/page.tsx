@@ -20,6 +20,7 @@ import {
   Check,
   Receipt,
   CreditCard,
+  Wifi,
 } from "lucide-react";
 
 export default function OrderPage() {
@@ -58,12 +59,22 @@ export default function OrderPage() {
   }
   const [posDiagnostics, setPosDiagnostics] =
     React.useState<PosDiagnostics | null>(null);
+  const [internetCardQty, setInternetCardQty] = React.useState(0);
+  const INTERNET_CARD_UNIT_PRICE = 10;
+  const INTERNET_CARD_UNIT_SIZE_GB = 1.5;
   const { push } = useToast();
 
   const placeOrder = async () => {
     setSubmitting(true);
     setSubmitError(null);
     setLastOrder(null);
+    if (!cart || cart.items.length === 0) {
+      const message = "Add at least one drink before placing an order";
+      setSubmitError(message);
+      push({ type: "error", message });
+      setSubmitting(false);
+      return;
+    }
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -75,6 +86,8 @@ export default function OrderPage() {
           paymentMethod: "ONLINE",
           orderType,
           notes,
+          internetCard:
+            internetCardQty > 0 ? { quantity: internetCardQty } : undefined,
           odoo: {
             partner: { name: "Website Customer" },
             sale: { enable: saleEnabled, autoConfirm },
@@ -89,6 +102,7 @@ export default function OrderPage() {
       const json = await res.json();
       setLastOrder(json.data);
       push({ type: "success", message: "Order placed successfully" });
+      setInternetCardQty(0);
       await refreshCart();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
@@ -128,10 +142,17 @@ export default function OrderPage() {
   }, [posEnabled]);
 
   // Calculate totals
-  const subtotal = cart?.items.reduce((s, i) => s + i.price, 0) ?? 0;
+  const drinksSubtotal = cart?.items.reduce((s, i) => s + i.price, 0) ?? 0;
   const deliveryFee = orderType === "DELIVERY" ? 15 : 0;
-  const totalAmount = subtotal + deliveryFee;
+  const internetCardTotal = internetCardQty * INTERNET_CARD_UNIT_PRICE;
+  const totalAmount = drinksSubtotal + deliveryFee + internetCardTotal;
   const itemCount = cart?.items.reduce((s, i) => s + i.quantity, 0) ?? 0;
+
+  React.useEffect(() => {
+    if (itemCount === 0 && internetCardQty !== 0) {
+      setInternetCardQty(0);
+    }
+  }, [itemCount, internetCardQty]);
 
   if (loading)
     return (
@@ -429,6 +450,55 @@ export default function OrderPage() {
                 </div>
               </div>
 
+              {/* Internet Card Add-on */}
+              <div className="bg-white rounded-3xl shadow-xl border border-elite-burgundy/10 p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-elite-burgundy/10 text-elite-burgundy flex items-center justify-center">
+                      <Wifi className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="font-calistoga text-elite-burgundy text-xl">
+                        Internet Card Add-on
+                      </h2>
+                      <p className="font-cabin text-elite-black/60 text-sm">
+                        Each card adds {INTERNET_CARD_UNIT_SIZE_GB} GB of internet for 10 EGP. Cards must be paired with a drink.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="font-cabin text-elite-burgundy font-medium">
+                    +{internetCardTotal.toFixed(2)} EGP
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="font-cabin text-elite-black/70">
+                    <div>Selected Cards: {internetCardQty}</div>
+                    <div className="text-sm">
+                      Total: {internetCardTotal.toFixed(2)} EGP
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="w-10 h-10 rounded-full border-2 border-elite-burgundy/20 flex items-center justify-center text-elite-burgundy hover:bg-elite-burgundy hover:text-elite-cream transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setInternetCardQty(Math.max(0, internetCardQty - 1))}
+                      disabled={internetCardQty === 0}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="font-calistoga text-elite-black text-lg w-8 text-center">
+                      {internetCardQty}
+                    </span>
+                    <button
+                      className="w-10 h-10 rounded-full border-2 border-elite-burgundy/20 flex items-center justify-center text-elite-burgundy hover:bg-elite-burgundy hover:text-elite-cream transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setInternetCardQty(internetCardQty + 1)}
+                      disabled={itemCount === 0}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Odoo Integration Options */}
               <OrderIntegrationOptions
                 saleEnabled={saleEnabled}
@@ -524,15 +594,23 @@ export default function OrderPage() {
                   <Receipt className="w-5 h-5" />
                   Order Summary
                 </h2>
-                <div className="space-y-3 font-cabin">
-                  <div className="flex justify-between text-elite-black/70">
-                    <span>Subtotal</span>
-                    <span>{subtotal.toFixed(2)} EGP</span>
-                  </div>
+                  <div className="space-y-3 font-cabin">
+                    <div className="flex justify-between text-elite-black/70">
+                      <span>Drinks Subtotal</span>
+                      <span>{drinksSubtotal.toFixed(2)} EGP</span>
+                    </div>
                   <div className="flex justify-between text-elite-black/70">
                     <span>Delivery Fee</span>
                     <span>{deliveryFee.toFixed(2)} EGP</span>
                   </div>
+                  {internetCardQty > 0 && (
+                    <div className="flex justify-between text-elite-black/70">
+                      <span>
+                        Internet Cards ({internetCardQty} × {INTERNET_CARD_UNIT_PRICE} EGP)
+                      </span>
+                      <span>{internetCardTotal.toFixed(2)} EGP</span>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-4 border-t border-elite-burgundy/20">
                     <span className="font-calistoga text-elite-black text-xl">
                       Total
@@ -552,7 +630,10 @@ export default function OrderPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <button
                   className="w-full sm:w-auto px-6 py-3 rounded-full border-2 border-elite-burgundy/20 text-elite-burgundy font-cabin font-medium hover:bg-elite-burgundy/5 transition-all"
-                  onClick={clearCart}
+                  onClick={async () => {
+                    await clearCart();
+                    setInternetCardQty(0);
+                  }}
                 >
                   Clear Cart
                 </button>

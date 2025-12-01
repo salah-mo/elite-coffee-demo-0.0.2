@@ -6,6 +6,11 @@ export const createOrderSchema = z.object({
   orderType: z.nativeEnum(OrderType),
   addressId: z.string().min(1).optional(),
   notes: z.string().max(500).optional(),
+  internetCard: z
+    .object({
+      quantity: z.number().int().min(0).default(0),
+    })
+    .optional(),
   odoo: z
     .object({
       partner: z

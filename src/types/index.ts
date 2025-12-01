@@ -110,6 +110,13 @@ export interface OrderItem {
   menuItem?: MenuItemType;
 }
 
+export interface OrderInternetCard {
+  quantity: number;
+  unitSizeGb: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -123,6 +130,7 @@ export interface Order {
   discount: number;
   total: number;
   notes?: string;
+  internetCard?: OrderInternetCard;
   integrations?: {
     odoo?: {
       saleOrderId?: number;
