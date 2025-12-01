@@ -17,15 +17,13 @@ export async function GET(
   try {
     const { id } = await params;
     const userId = request.headers.get("x-user-id") || "demo-user";
-    const order = orderDB.getById(id);
+    
+    // Get user's orders and find the specific one (serverless-compatible)
+    const userOrders = orderDB.getByUserId(userId);
+    const order = userOrders.find((o) => o.id === id);
 
     if (!order) {
       return jsonResponse({ success: false, error: "Order not found" }, 404);
-    }
-
-    // Verify order belongs to user
-    if (order.userId !== userId) {
-      return jsonResponse({ success: false, error: "Unauthorized" }, 403);
     }
 
     return jsonResponse(successResponse(order));
