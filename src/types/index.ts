@@ -7,7 +7,7 @@ import type {
   SubCategory as MenuSubCategory,
   MenuCategory as MenuCategoryType,
   RecommendedItem,
-} from '@/lib/menuData';
+} from "@/lib/menuData";
 
 export type {
   MenuSize as Size,
@@ -53,10 +53,10 @@ export interface User {
 }
 
 export enum UserRole {
-  CUSTOMER = 'CUSTOMER',
-  STAFF = 'STAFF',
-  ADMIN = 'ADMIN',
-  SUPER_ADMIN = 'SUPER_ADMIN',
+  CUSTOMER = "CUSTOMER",
+  STAFF = "STAFF",
+  ADMIN = "ADMIN",
+  SUPER_ADMIN = "SUPER_ADMIN",
 }
 
 // Auth Types
@@ -117,39 +117,51 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
+  orderType: OrderType;
   subtotal: number;
-  tax: number;
   deliveryFee: number;
   discount: number;
   total: number;
   notes?: string;
+  integrations?: {
+    odoo?: {
+      saleOrderId?: number;
+      posOrderId?: number;
+      url?: string;
+    };
+  };
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
 }
 
+export enum OrderType {
+  PICKUP = "PICKUP",
+  DELIVERY = "DELIVERY",
+}
+
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  PREPARING = 'PREPARING',
-  READY = 'READY',
-  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  PREPARING = "PREPARING",
+  READY = "READY",
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  FAILED = 'FAILED',
-  REFUNDED = 'REFUNDED',
+  PENDING = "PENDING",
+  PAID = "PAID",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
 }
 
 export enum PaymentMethod {
-  CASH = 'CASH',
-  CARD = 'CARD',
-  WALLET = 'WALLET',
-  ONLINE = 'ONLINE',
+  CASH = "CASH",
+  CARD = "CARD",
+  WALLET = "WALLET",
+  ONLINE = "ONLINE",
 }
 
 // Address Types
