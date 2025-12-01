@@ -10,6 +10,14 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Elite Coffee theme colors
+        'elite-burgundy': '#8B0000',
+        'elite-cream': '#FDF5E6', 
+        'elite-white': '#FFFFFF',
+        'elite-black': '#000000',
+        'elite-gray': '#6B7280',
+        'elite-light-gray': '#F3F4F6',
+        // Shadcn/ui colors
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -55,6 +63,10 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
+      },
+      fontFamily: {
+        'cabin': ['var(--font-cabin-condensed)', 'sans-serif'],
+        'calistoga': ['var(--font-calistoga)', 'serif'],
       },
       container: {
       center: true,

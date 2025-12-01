@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Coffee, Utensils } from 'lucide-react';
+import { useState } from "react";
+import { Coffee, Utensils } from "lucide-react";
 
 interface MenuImageProps {
   src: string;
@@ -11,22 +11,22 @@ interface MenuImageProps {
   fallbackIcon?: React.ReactNode;
 }
 
-export default function MenuImage({ 
-  src, 
-  alt, 
-  category, 
-  className = "", 
-  fallbackIcon 
+export default function MenuImage({
+  src,
+  alt,
+  category,
+  className = "",
+  fallbackIcon,
 }: MenuImageProps) {
   const [imageError, setImageError] = useState(false);
 
   const getDefaultIcon = () => {
     if (fallbackIcon) return fallbackIcon;
-    
+
     switch (category.toLowerCase()) {
-      case 'drinks':
+      case "drinks":
         return <Coffee className="w-16 h-16 text-elite-cream" />;
-      case 'food':
+      case "food":
         return <Utensils className="w-16 h-16 text-elite-cream" />;
       default:
         return <Coffee className="w-16 h-16 text-elite-cream" />;
@@ -35,7 +35,9 @@ export default function MenuImage({
 
   if (imageError || !src) {
     return (
-      <div className={`bg-gradient-to-br from-elite-burgundy to-elite-dark-burgundy flex items-center justify-center ${className}`}>
+      <div
+        className={`bg-gradient-to-br from-elite-burgundy to-elite-dark-burgundy flex items-center justify-center ${className}`}
+      >
         {getDefaultIcon()}
       </div>
     );
@@ -50,4 +52,4 @@ export default function MenuImage({
       loading="lazy"
     />
   );
-} 
+}

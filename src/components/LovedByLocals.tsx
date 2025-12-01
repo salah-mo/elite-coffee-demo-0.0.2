@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -15,30 +15,30 @@ export default function LovedByLocals() {
     {
       name: "Cappuccino",
       image: "https://ext.same-assets.com/1022434225/2347648118.avif",
-      link: "/menu/classic-drinks"
+      link: "/menu/classic-drinks",
     },
     {
       name: "Bubble Tea",
       image: "https://ext.same-assets.com/1022434225/4278114908.avif",
-      link: "/menu/special-drinks"
+      link: "/menu/special-drinks",
     },
     {
       name: "Iced Tea",
       image: "https://ext.same-assets.com/1022434225/703059297.avif",
-      link: "/menu/special-drinks"
+      link: "/menu/special-drinks",
     },
     {
       name: "Iced Latte",
       image: "https://ext.same-assets.com/1022434225/1157300862.avif",
-      link: "/menu/special-drinks"
-    }
+      link: "/menu/special-drinks",
+    },
   ];
 
   useEffect(() => {
     // Set initial state - scale down to 0
     gsap.set([...productRefs.current, buttonRef.current], {
       scale: 0,
-      opacity: 0
+      opacity: 0,
     });
 
     // Create timeline for staggered animation
@@ -47,8 +47,8 @@ export default function LovedByLocals() {
         trigger: productRefs.current[0],
         start: "top 90%",
         end: "bottom 10%",
-        toggleActions: "play none none none"
-      }
+        toggleActions: "play none none none",
+      },
     });
 
     // Animate products in sequence
@@ -57,15 +57,19 @@ export default function LovedByLocals() {
       opacity: 1,
       duration: 0.8,
       ease: "back.out(1.7)",
-      stagger: 0.2
+      stagger: 0.2,
     })
-    // Animate button last
-    .to(buttonRef.current, {
-      scale: 1,
-      opacity: 1,
-      duration: 0.8,
-      ease: "back.out(1.7)"
-    }, "-=0.4");
+      // Animate button last
+      .to(
+        buttonRef.current,
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.8,
+          ease: "back.out(1.7)",
+        },
+        "-=0.4",
+      );
   }, []);
 
   return (
@@ -111,7 +115,10 @@ export default function LovedByLocals() {
         </div>
 
         {/* Explore Menu Button */}
-        <button ref={buttonRef} className="bg-elite-burgundy text-elite-white px-6 py-3 rounded-full font-cabin text-base font-semibold hover:opacity-90 transition-opacity">
+        <button
+          ref={buttonRef}
+          className="bg-elite-burgundy text-elite-white px-6 py-3 rounded-full font-cabin text-base font-semibold hover:opacity-90 transition-opacity"
+        >
           Explore Menu
         </button>
       </div>

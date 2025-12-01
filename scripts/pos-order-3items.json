@@ -1,0 +1,11 @@
+{
+  "partner": { "name": "Kitchen Test" },
+  "items": [
+    { "menuItemId": "WATER", "name": "Water", "quantity": 4, "unitPrice": 10 },
+    { "menuItemId": "MOCHA", "name": "Mocha", "quantity": 2, "unitPrice": 45 },
+    { "menuItemId": "REDTEA", "name": "Red Tea", "quantity": 3, "unitPrice": 20 }
+  ],
+  "notes": "Kitchen order test (4 water, 2 mocha, 3 red tea)",
+  "orderNumber": "WEB-POS-TEST-4W-2M-3RT",
+  "posConfigName": "Restaurant"
+}

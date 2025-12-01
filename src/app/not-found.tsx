@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { Coffee, Home, Menu, MapPin } from 'lucide-react';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
+import Link from "next/link";
+import { Coffee, Home, Menu, MapPin } from "lucide-react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 export default function NotFound() {
   return (
@@ -94,7 +94,9 @@ export default function NotFound() {
             </p>
             <div className="flex items-center justify-center gap-2 text-elite-burgundy font-cabin font-semibold">
               <MapPin className="w-4 h-4" />
-              <span>Faiyum, Governorate Club, next to the Governor's Villa</span>
+              <span>
+                Faiyum, Governorate Club, next to the Governor's Villa
+              </span>
             </div>
           </div>
         </div>
@@ -102,4 +104,4 @@ export default function NotFound() {
       <Footer />
     </main>
   );
-} 
+}

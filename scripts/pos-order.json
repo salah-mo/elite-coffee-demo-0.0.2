@@ -1,0 +1,9 @@
+{
+  "partner": { "name": "Kitchen Test" },
+  "items": [
+    { "menuItemId": "WATER-500ML", "name": "Water 500ml", "quantity": 14, "unitPrice": 10 }
+  ],
+  "notes": "Kitchen order test",
+  "orderNumber": "WEB-POS-TEST-14-WATER",
+  "posConfigName": "Restaurant"
+}

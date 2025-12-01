@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -14,15 +14,17 @@ export default function GoodVibesSection() {
 
   useEffect(() => {
     // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     if (prefersReducedMotion) {
       // Simple fade in for images only
       gsap.set(imageRefs.current, {
         opacity: 0,
-        y: 20
+        y: 20,
       });
-      
+
       gsap.to(imageRefs.current, {
         opacity: 1,
         y: 0,
@@ -32,8 +34,8 @@ export default function GoodVibesSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 80%",
-          toggleActions: "play none none none"
-        }
+          toggleActions: "play none none none",
+        },
       });
       return;
     }
@@ -43,7 +45,7 @@ export default function GoodVibesSection() {
     gsap.set(imageRefs.current, {
       opacity: 0,
       scale: 0.8,
-      rotationY: -15
+      rotationY: -15,
     });
 
     // Create main timeline
@@ -51,8 +53,8 @@ export default function GoodVibesSection() {
       scrollTrigger: {
         trigger: sectionRef.current,
         start: "top 80%",
-        toggleActions: "play none none none" // Only play once
-      }
+        toggleActions: "play none none none", // Only play once
+      },
     });
 
     // Animate images with 3D effect and stagger
@@ -62,12 +64,12 @@ export default function GoodVibesSection() {
       rotationY: 0,
       duration: 1,
       stagger: 0.2,
-      ease: "power2.out"
+      ease: "power2.out",
     });
 
     // Cleanup function
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 
@@ -75,27 +77,30 @@ export default function GoodVibesSection() {
     {
       icon: "☕",
       text: "Great Coffee, Tasty Sips",
-      description: "Expertly crafted beverages with premium beans"
+      description: "Expertly crafted beverages with premium beans",
     },
     {
       icon: "♥",
       text: "Warm, Cozy Atmosphere",
-      description: "A welcoming space that feels like home"
+      description: "A welcoming space that feels like home",
     },
     {
       icon: "😊",
       text: "Speedy Service with a Smile",
-      description: "Quick, friendly service every time"
+      description: "Quick, friendly service every time",
     },
     {
       icon: "🏠",
       text: "Local & Sustainable",
-      description: "Supporting local farmers and eco-friendly practices"
-    }
+      description: "Supporting local farmers and eco-friendly practices",
+    },
   ];
 
   return (
-    <section ref={sectionRef} className="bg-elite-burgundy relative overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="bg-elite-burgundy relative overflow-hidden"
+    >
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-elite-burgundy rounded-full blur-3xl"></div>
@@ -109,12 +114,13 @@ export default function GoodVibesSection() {
             {/* Main Heading and Description */}
             <div className="space-y-6">
               <h2 className="font-calistoga text-elite-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight">
-                Good Vibes.<br />
+                Good Vibes.
+                <br />
                 <span className="text-elite-cream">Great Coffee.</span>
               </h2>
               <p className="text-elite-white font-cabin text-lg md:text-xl leading-relaxed max-w-lg">
-                At Elite, we serve great coffee and fresh pastries with care and passion, 
-                creating a warm, cozy space that feels like home.
+                At Elite, we serve great coffee and fresh pastries with care and
+                passion, creating a warm, cozy space that feels like home.
               </p>
             </div>
 
@@ -140,7 +146,7 @@ export default function GoodVibesSection() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Hover effect overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-elite-burgundy/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
@@ -149,13 +155,15 @@ export default function GoodVibesSection() {
           </div>
 
           {/* Right Column - Enhanced Images Layout */}
-          <div 
-            ref={imagesRef} 
+          <div
+            ref={imagesRef}
             className="relative grid grid-cols-2 gap-4 lg:gap-6 h-[400px] lg:h-[500px] xl:h-[600px]"
           >
             {/* Left Column - Barista Image */}
-            <div 
-              ref={(el) => { imageRefs.current[0] = el; }}
+            <div
+              ref={(el) => {
+                imageRefs.current[0] = el;
+              }}
               className="relative group h-full"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl z-10 group-hover:opacity-0 transition-opacity duration-300"></div>
@@ -165,18 +173,22 @@ export default function GoodVibesSection() {
                 className="w-full h-full object-cover rounded-3xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
-                              <div className="absolute bottom-4 left-4 z-20">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2">
-                    <p className="text-elite-black font-cabin text-sm font-medium">Expert Baristas</p>
-                  </div>
+              <div className="absolute bottom-4 left-4 z-20">
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2">
+                  <p className="text-elite-black font-cabin text-sm font-medium">
+                    Expert Baristas
+                  </p>
                 </div>
+              </div>
             </div>
 
             {/* Right Column - Two Images Stacked */}
             <div className="space-y-4 lg:space-y-6 h-full flex flex-col">
               {/* Top Right - Cafe Interior */}
-              <div 
-                ref={(el) => { imageRefs.current[1] = el; }}
+              <div
+                ref={(el) => {
+                  imageRefs.current[1] = el;
+                }}
                 className="relative group flex-1"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl z-10 group-hover:opacity-0 transition-opacity duration-300"></div>
@@ -188,14 +200,18 @@ export default function GoodVibesSection() {
                 />
                 <div className="absolute bottom-3 left-3 z-20">
                   <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2">
-                    <p className="text-elite-black font-cabin text-sm font-medium">Cozy Space</p>
+                    <p className="text-elite-black font-cabin text-sm font-medium">
+                      Cozy Space
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Bottom Right - Coffee Cup */}
-              <div 
-                ref={(el) => { imageRefs.current[2] = el; }}
+              <div
+                ref={(el) => {
+                  imageRefs.current[2] = el;
+                }}
                 className="relative group flex-1"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl z-10 group-hover:opacity-0 transition-opacity duration-300"></div>
@@ -207,7 +223,9 @@ export default function GoodVibesSection() {
                 />
                 <div className="absolute bottom-3 left-3 z-20">
                   <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2">
-                    <p className="text-elite-black font-cabin text-sm font-medium">Handcrafted</p>
+                    <p className="text-elite-black font-cabin text-sm font-medium">
+                      Handcrafted
+                    </p>
                   </div>
                 </div>
               </div>
@@ -217,4 +235,4 @@ export default function GoodVibesSection() {
       </div>
     </section>
   );
-} 
+}
