@@ -42,3 +42,5 @@ next-env.d.ts
 
 # JSON database (local data storage)
 /data/database.json
+
+/.github

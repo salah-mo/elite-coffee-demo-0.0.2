@@ -1,99 +1,93 @@
 # Elite Coffee Shop - Full Stack Application
 
-A modern, full-stack coffee shop web application built with Next.js 15, TypeScript, and JSON file-based storage.
+A modern, production-ready coffee shop web application built with Next.js 15, TypeScript, and JSON file-based persistent storage. Optional Odoo ERP/POS integration for real-world order management.
 
-> Documentation moved: All docs now live in the `docs/` folder.
-> Start here: [docs/README.md](./docs/README.md) for the full index.
-> Quick links: [START_HERE](./docs/START_HERE.md) · [QUICKSTART](./docs/QUICKSTART.md) · [ODOO_INTEGRATION](./docs/ODOO_INTEGRATION.md)
+> **Documentation:** All docs live in the `docs/` folder.
+> **Quick Start:** [QUICKSTART.md](./docs/QUICKSTART.md) · [QUICKSTART_GUIDE.md](./docs/QUICKSTART_GUIDE.md)
+> **Guides:** [START_HERE](./docs/START_HERE.md) · [PROJECT_STRUCTURE](./docs/PROJECT_STRUCTURE.md) · [ODOO_INTEGRATION](./docs/ODOO_INTEGRATION.md)
 
-## 🏗️ Project Structure
+---
 
-```
-elite-coffee-shop/
-├── data/                   # JSON database
-│   └── database.json      # Persistent storage
-├── public/                 # Static assets
-│   └── images/            # Images
-├── src/
-│   ├── app/               # Next.js App Router
-│   │   ├── api/           # API routes
-│   │   ├── rewards/       # Rewards page
-│   │   └── shop/          # Shop page
-│   ├── components/        # React components
-│   ├── contexts/          # React contexts
-│   ├── hooks/             # Custom React hooks
-│   ├── lib/               # Utility libraries
-│   ├── server/            # Backend logic
-│   │   └── utils/         # Server utilities (JSON database, API helpers)
-│   └── types/             # TypeScript types
-└── ...config files
-| `ODOO_API_KEY` | Odoo API key (preferred) | No |
-| `ODOO_PASSWORD` | Odoo password (fallback) | No |
-| `ODOO_TIMEOUT_MS` | Optional request timeout (ms) | No |
-| `ODOO_INSECURE_SSL` | Allow self-signed certs in dev (true/false) | No |
 ## 🚀 Features
 
 ### Current Features
-- ✅ Menu browsing with categories and subcategories
-- ✅ Order management system
-- ✅ RESTful API endpoints
-- ✅ JSON file-based persistent storage
-- ✅ TypeScript for type safety
+- ✅ **Menu System** - Categories, subcategories, and detailed item pages
+- ✅ **Cart Management** - Add, update, remove items with customizations
+- ✅ **Order Processing** - Complete order workflow from cart to completion
+- ✅ **RESTful API** - 10+ well-structured endpoints
+- ✅ **JSON File Storage** - Persistent data across server restarts
+- ✅ **Type Safety** - Full TypeScript coverage with Zod validation
+- ✅ **Odoo Integration** - Optional ERP/POS connectivity (Sales & Kitchen Display)
+- ✅ **Modern UI** - Responsive design with Tailwind CSS
+- ✅ **Animations** - Framer Motion and GSAP for smooth UX
 
-### Backend Architecture
-- **API Routes**: RESTful API endpoints using Next.js Route Handlers
-- **Data Storage**: JSON file-based database (no PostgreSQL needed!)
+### Architecture Highlights
+- **Backend**: Next.js 15 API routes with server-side rendering
+- **Data Storage**: JSON file (`data/database.json`) - no SQL setup required
+- **Validation**: Zod schemas for request/response validation
+- **Error Handling**: Consistent error responses across all endpoints
+- **User Context**: Header-based user identification (`x-user-id`)
 
-### Planned Features
-- 🔄 User authentication (JWT)
-- 🔄 Payment integration
-- 🔄 Order tracking
-- 🔄 Reviews and ratings
-- 🔄 Rewards program
-- 🔄 Admin dashboard
+---
 
 ## 📦 Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion, GSAP
-- **UI Components**: Custom components with class-variance-authority
+- **Framework:** Next.js 15 (App Router, React Server Components)
+- **Language:** TypeScript 5.6+
+- **Styling:** Tailwind CSS 3.4+
+- **Animations:** Framer Motion, GSAP
+- **UI Components:** Custom components with class-variance-authority
 
 ### Backend
-- **Runtime**: Node.js
-- **Database**: JSON File Storage (no setup required!)
-- **API**: Next.js Route Handlers
-- **Type Safety**: TypeScript
+- **Runtime:** Node.js 18+
+- **API:** Next.js Route Handlers (RESTful)
+- **Data Storage:** JSON File (`data/database.json`) - persistent, thread-safe
+- **Validation:** Zod schemas
+- **Integration:** Optional Odoo JSON-RPC client
+
+### Development Tools
+- **Build Tool:** Turbopack (Next.js 15)
+- **Linting:** ESLint + TypeScript
+- **Formatting:** Biome
+- **Type Checking:** TypeScript strict mode
+
+---
 
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
-- Node.js 18+ or Bun
-- Git
+- Node.js 18+ installed
+- npm package manager
+- Git (optional)
 
-### Installation
+### Quick Start (3 Steps)
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd elite-coffee-shop
-   ```
-
-2. **Install dependencies**
-   ```bash
+1. **Install dependencies**
+   ```powershell
    npm install
-   # or
-   bun install
    ```
 
-3. **Run the development server**
-   ```bash
+2. **Start development server**
+   ```powershell
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. **Open in browser**
+   Visit [http://localhost:3000](http://localhost:3000)
+
+### Optional: Odoo Integration
+
+Create `.env.local` file if you want Odoo connectivity:
+
+```bash
+ODOO_HOST=https://your-odoo.odoo.com
+ODOO_DB=your_db
+ODOO_USERNAME=your_user@example.com
+ODOO_API_KEY=your_api_key
+```
+
+See [ODOO_INTEGRATION.md](./docs/ODOO_INTEGRATION.md) for complete guide.
 
 ## 📚 API Documentation
 
@@ -184,22 +178,17 @@ Headers: x-user-id: <user-id>
 - **Reward**: Loyalty program
 - **Address**: User addresses
 
+---
+
 ## 🔧 Available Scripts
 
-```bash
-# Development
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run start            # Start production server
-npm run lint             # Run ESLint
-npm run format           # Format code with Biome
-
-# Database
-npm run db:generate      # Generate Prisma Client
-npm run db:push          # Push schema to database
-npm run db:migrate       # Run migrations
-npm run db:seed          # Seed database
-npm run db:studio        # Open Prisma Studio
+```powershell
+npm run dev       # Start development server (with Turbopack)
+npm run build     # Build for production
+npm run start     # Start production server
+npm run lint      # TypeScript checking + ESLint
+npm run format    # Format code with Biome
+npm run db:reset  # Reset JSON database (clears all data)
 ```
 
 ## 🏗️ Development Workflow
@@ -218,19 +207,21 @@ npm run db:studio        # Open Prisma Studio
 - Biome for code formatting
 - Follow the existing project structure
 
+---
+
 ## 🔐 Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `NEXT_PUBLIC_APP_URL` | Application URL | No |
-| `NODE_ENV` | Environment (development/production) | No |
-| `ODOO_HOST` | Odoo base URL (e.g., https://odoo.example.com:8069) | No |
+| `ODOO_HOST` | Odoo base URL (e.g., https://odoo.example.com) | No |
 | `ODOO_DB` | Odoo database name | No |
 | `ODOO_USERNAME` | Odoo API user | No |
-| `ODOO_PASSWORD` | Odoo API password | No |
-| `ODOO_TIMEOUT_MS` | Optional request timeout (ms) | No |
+| `ODOO_API_KEY` | Odoo API key (preferred) | No |
+| `ODOO_PASSWORD` | Odoo password (fallback) | No |
+| `ODOO_TIMEOUT_MS` | Request timeout in ms (default: 20000) | No |
+| `ODOO_INSECURE_SSL` | Allow self-signed certs (dev only) | No |
 
-**Note**: No database connection string needed! The app uses JSON file storage.
+**Note:** No `DATABASE_URL` needed! The app uses JSON file storage (`data/database.json`).
 
 ## 🤝 Contributing
 
@@ -243,22 +234,41 @@ npm run db:studio        # Open Prisma Studio
 
 This project is private and proprietary.
 
-## 🆘 Troubleshooting
+---
+
+## 🎯 Troubleshooting
 
 ### Data Issues
-- Check `data/database.json` file exists
 - Reset database: `npm run db:reset`
-- Verify file permissions
+- Verify `data/database.json` exists and is valid JSON
+- Check file permissions
 
 ### Build Errors
-```bash
-# Clear Next.js cache
-rm -rf .next
-
-# Reinstall dependencies
-rm -rf node_modules
+```powershell
+# Clear Next.js cache and reinstall
+Remove-Item -Recurse -Force .next, node_modules
 npm install
 ```
+
+### Port 3000 in use
+```powershell
+# Option 1: Kill the process
+npx kill-port 3000
+
+# Option 2: Use different port
+npm run dev -- -p 3001
+```
+
+### Type Errors
+```powershell
+npm run lint
+```
+
+### Odoo Connection Issues
+- Verify `.env.local` values
+- Prefer `ODOO_API_KEY` over `ODOO_PASSWORD`
+- Check network connectivity to Odoo instance
+- For dev with self-signed certs: set `ODOO_INSECURE_SSL=true`
 
 ## 🧩 Odoo POS/ERP Integration (Optional)
 
