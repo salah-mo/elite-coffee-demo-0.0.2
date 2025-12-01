@@ -505,31 +505,39 @@ export class OdooClient {
 
     // Last resort: try direct record creation (may not trigger KDS live events)
     try {
-      const orderId = await this.rpc<number>("pos.order", "create", [
-        [
-          {
-            partner_id: partnerId,
-            session_id: sessionId,
-            amount_total,
-            amount_tax: 0,
-            amount_paid: 0,
-            amount_return: 0,
-          },
-        ],
+      // Create the POS order first
+      const createResult = await this.rpc<number | number[]>("pos.order", "create", [
+        {
+          partner_id: partnerId,
+          session_id: sessionId,
+          amount_total,
+          amount_tax: 0,
+          amount_paid: 0,
+          amount_return: 0,
+          pos_reference: pos_reference,
+          date_order: date_order,
+        },
       ]);
 
-      // Create lines directly
+      // Extract the order ID (handle both single ID and array responses)
+      const orderId = Array.isArray(createResult) ? createResult[0] : createResult;
+
+      if (!orderId) {
+        throw new Error("Failed to get order ID from create response");
+      }
+
+      // Create lines directly (one at a time to avoid array issues)
       for (const l of lines) {
         const base = l[2] as any;
-        const vals = {
-          order_id: orderId,
+        const lineVals = {
+          order_id: orderId,  // Single integer, not array
           product_id: base.product_id,
           qty: base.qty,
           price_unit: base.price_unit,
           discount: base.discount ?? 0,
           ...(base.customer_note ? { customer_note: base.customer_note } : {}),
-        } as any;
-        await this.rpc("pos.order.line", "create", [[vals]]);
+        };
+        await this.rpc("pos.order.line", "create", [lineVals]);
       }
       return orderId;
     } catch (fallbackErr) {

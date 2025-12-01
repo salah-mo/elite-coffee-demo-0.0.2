@@ -31,9 +31,9 @@ export async function generateStaticParams() {
 export default async function CategoryPage({
   params,
 }: {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 }) {
-  const { category: categoryId } = params;
+  const { category: categoryId } = await params;
   const category = getCategoryById(categoryId);
   const allCategories = getAllCategories();
 

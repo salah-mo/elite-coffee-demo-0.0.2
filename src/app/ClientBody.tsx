@@ -14,43 +14,42 @@ export default function ClientBody({
 }: {
   children: React.ReactNode;
 }) {
-  // Handle body classes to prevent hydration mismatches
+  // Handle initialization after hydration is complete
   useEffect(() => {
-    // Ensure the body has the correct classes
-    const body = document.body;
-    if (body) {
-      // Remove any extension-added classes that might cause hydration issues
-      const classesToRemove = ["vsc-initialized", "vscode-initialized"];
-      classesToRemove.forEach((className) => {
-        if (body.classList.contains(className)) {
-          body.classList.remove(className);
-        }
-      });
+    // Ensure we're in the browser
+    if (typeof window === "undefined" || typeof document === "undefined") return;
 
-      // Ensure antialiased class is present
-      if (!body.classList.contains("antialiased")) {
-        body.classList.add("antialiased");
-      }
+    try {
+      // Initialize navigation state
+      createNavigationState();
+      
+      // Prevent layout shifts
+      preventLayoutShift();
+    } catch (error) {
+      console.warn("Failed to initialize client state:", error);
     }
-
-    // Initialize navigation state
-    createNavigationState();
-
-    // Prevent layout shifts
-    preventLayoutShift();
 
     // Cleanup on unmount
     return () => {
-      cleanupNavigationState();
+      try {
+        cleanupNavigationState();
+      } catch (error) {
+        console.warn("Failed to cleanup navigation state:", error);
+      }
     };
   }, []);
 
   // Handle page visibility changes
   useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        // Reset page state when page becomes visible again
-        resetPageState();
+        try {
+          resetPageState();
+        } catch (error) {
+          console.warn("Failed to reset page state:", error);
+        }
       }
     };
 
@@ -63,8 +62,14 @@ export default function ClientBody({
 
   // Handle beforeunload to clean up state
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleBeforeUnload = () => {
-      cleanupNavigationState();
+      try {
+        cleanupNavigationState();
+      } catch (error) {
+        console.warn("Failed to cleanup on beforeunload:", error);
+      }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);

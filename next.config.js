@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["*.preview.same-app.com"],
+  // Disable devtools to fix Next.js 15.5.6 bug
+  // "Cannot read properties of undefined (reading 'includes')"
+  devIndicators: {
+    appIsrStatus: false,
+    buildActivity: false,
+  },
+  
   images: {
     remotePatterns: [
       {

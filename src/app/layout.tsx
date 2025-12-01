@@ -55,8 +55,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${cabinCondensed.variable} ${calistoga.variable}`}
+      suppressHydrationWarning
     >
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <ErrorBoundary>
           <ClientBody>{children}</ClientBody>
         </ErrorBoundary>

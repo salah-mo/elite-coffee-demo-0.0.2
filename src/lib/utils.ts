@@ -46,13 +46,18 @@ export function cleanupNavigationState() {
 export function preventLayoutShift() {
   if (typeof window === "undefined") return;
 
+  const body = document.body;
+  if (!body || !body.classList) return;
+
   // Add loading class to body
-  document.body.classList.add("page-transition", "loading");
+  body.classList.add("page-transition", "loading");
 
   // Remove loading class after a short delay
   setTimeout(() => {
-    document.body.classList.remove("loading");
-    document.body.classList.add("loaded");
+    if (body.classList) {
+      body.classList.remove("loading");
+      body.classList.add("loaded");
+    }
   }, 100);
 }
 
@@ -60,8 +65,11 @@ export function preventLayoutShift() {
 export function resetPageState() {
   if (typeof window === "undefined") return;
 
+  const body = document.body;
+  if (!body || !body.classList) return;
+
   // Remove transition classes
-  document.body.classList.remove("page-transition", "loading", "loaded");
+  body.classList.remove("page-transition", "loading", "loaded");
 
   // Reset scroll position
   window.scrollTo(0, 0);
@@ -71,7 +79,9 @@ export function resetPageState() {
     ".drink-overlay-animation",
   );
   animatedElements.forEach((el) => {
-    el.classList.remove("animated");
+    if (el.classList) {
+      el.classList.remove("animated");
+    }
   });
 }
 

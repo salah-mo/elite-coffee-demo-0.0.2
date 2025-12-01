@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
 
     const { top: baseTop, alternatives: baseAlts } = suggestDrinks(prefs);
     let top = baseTop;
-    let alternatives = baseAlts;
+    let alternatives = baseAlts || [];
     // If a favorite appears in alternatives and scores close to top, promote it
-    const favAlt = baseAlts.find((a) => topFavIds.includes(a.item.id));
+    const favAlt = alternatives.find((a) => topFavIds.includes(a.item.id));
     if (favAlt && baseTop && favAlt.score >= baseTop.score - 1) {
       top = favAlt;
-      alternatives = [baseTop, ...baseAlts.filter((a) => a !== favAlt)].slice(
+      alternatives = [baseTop, ...alternatives.filter((a) => a !== favAlt)].slice(
         0,
         3,
       );
