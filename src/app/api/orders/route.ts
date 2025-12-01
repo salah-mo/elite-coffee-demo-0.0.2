@@ -158,6 +158,7 @@ export async function POST(request: NextRequest) {
                 url,
               },
             },
+            userId, // Include userId for serverless compatibility
           };
           orderDB.update(order.id, updates);
         }
@@ -172,7 +173,9 @@ export async function POST(request: NextRequest) {
     cartDB.clear(userId);
 
     // Return the latest order state
-    const updated = orderDB.getById(order.id) || order;
+    // In serverless, getById won't work, so find from user's orders
+    const userOrders = orderDB.getByUserId(userId);
+    const updated = userOrders.find((o) => o.id === order.id) || order;
     return jsonResponse(
       successResponse(updated, "Order created successfully"),
       201,
