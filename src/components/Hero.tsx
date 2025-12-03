@@ -3,13 +3,11 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function Hero() {
   const leftCupRef = useRef(null);
   const centerCupRef = useRef(null);
   const rightCupRef = useRef(null);
-  const router = useRouter();
 
   // Handle location navigation
   const handleLocationClick = (e: React.MouseEvent) => {
@@ -60,7 +58,11 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="bg-elite-burgundy flex flex-col max-h-[90vh] relative overflow-hidden">
+    <section
+      className="bg-elite-burgundy flex flex-col max-h-[90vh] relative overflow-hidden"
+      aria-labelledby="home-hero-heading"
+      role="banner"
+    >
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-elite-burgundy rounded-full blur-3xl"></div>
@@ -69,7 +71,10 @@ export default function Hero() {
 
       {/* Main content area */}
       <div className="relative flex flex-col items-center justify-center text-center px-6 pt-20 min-h-[50vh] max-h-[60vh]">
-        <h1 className="font-calistoga text-elite-white text-6xl md:text-7xl lg:text-8xl leading-tight max-w-4xl mb-6">
+        <h1
+          id="home-hero-heading"
+          className="font-calistoga text-elite-white text-6xl md:text-7xl lg:text-8xl leading-tight max-w-4xl mb-6"
+        >
           Life Begins
           <br />
           After Coffee
@@ -89,6 +94,7 @@ export default function Hero() {
           <button
             onClick={handleLocationClick}
             className="w-full sm:w-auto border-2 border-elite-cream text-elite-cream px-8 py-4 sm:px-6 sm:py-3 rounded-full font-cabin text-lg sm:text-base font-semibold hover:bg-elite-cream hover:text-elite-burgundy transition-all duration-300 transform hover:scale-105"
+            aria-label="Scroll to the location section"
           >
             Our Locations
           </button>

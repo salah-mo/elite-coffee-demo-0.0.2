@@ -100,9 +100,10 @@ export default function GoodVibesSection() {
     <section
       ref={sectionRef}
       className="bg-elite-burgundy relative overflow-hidden"
+      aria-labelledby="good-vibes-heading"
     >
       {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5" aria-hidden="true">
         <div className="absolute top-10 left-10 w-32 h-32 bg-elite-burgundy rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-40 h-40 bg-elite-cream rounded-full blur-3xl"></div>
       </div>
@@ -113,7 +114,10 @@ export default function GoodVibesSection() {
           <div className="space-y-8">
             {/* Main Heading and Description */}
             <div className="space-y-6">
-              <h2 className="font-calistoga text-elite-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight">
+              <h2
+                id="good-vibes-heading"
+                className="font-calistoga text-elite-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight"
+              >
                 Good Vibes.
                 <br />
                 <span className="text-elite-cream">Great Coffee.</span>
@@ -125,11 +129,11 @@ export default function GoodVibesSection() {
             </div>
 
             {/* Enhanced Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
               {features.map((feature, idx) => (
-                <div
+                <li
                   key={idx}
-                  className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-elite-burgundy/10 hover:border-elite-burgundy/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                  className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-elite-burgundy/10 hover:border-elite-burgundy/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                 >
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
@@ -149,9 +153,9 @@ export default function GoodVibesSection() {
 
                   {/* Hover effect overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-elite-burgundy/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
           {/* Right Column - Enhanced Images Layout */}

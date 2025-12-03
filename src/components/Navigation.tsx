@@ -11,6 +11,7 @@ export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const mobileMenuId = "mobile-nav-menu";
 
   // Handle scroll detection
   useEffect(() => {
@@ -54,6 +55,27 @@ export default function Navigation() {
     }
   };
 
+  const isRouteActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/menu") return pathname.startsWith("/menu");
+    if (href === "/orders") return pathname.startsWith("/orders");
+    if (href === "/shop") return pathname.startsWith("/shop");
+    if (href === "/rewards") return pathname.startsWith("/rewards");
+    if (href === "/suggest") return pathname.startsWith("/suggest");
+    return pathname === href;
+  };
+
+  const baseDesktopLink =
+    "px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:bg-elite-burgundy hover:text-elite-cream hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-elite-burgundy";
+  const activeDesktopLink =
+    "bg-elite-burgundy text-elite-cream border-elite-burgundy/40 shadow-xl";
+  const inactiveDesktopLink = "text-elite-black";
+
+  const baseMobileLink =
+    "bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-elite-burgundy";
+  const activeMobileLink =
+    "bg-elite-burgundy text-elite-cream shadow-lg";
+
   return (
     <>
       {/* Promotion Banner */}
@@ -65,8 +87,10 @@ export default function Navigation() {
           <button
             onClick={() => setShowPromo(false)}
             className="absolute right-6 top-1/2 transform -translate-y-1/2 text-elite-black hover:opacity-70 transition-all duration-300 hover:scale-110"
+            aria-label="Dismiss promotion"
+            title="Dismiss promotion"
           >
-            <X size={24} />
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -76,6 +100,7 @@ export default function Navigation() {
         className={`sticky top-0 z-50 transition-all duration-500 ease-in-out ${
           isScrolled ? "" : ""
         }`}
+        aria-label="Primary"
       >
         {/* Desktop Navigation */}
         <div className="hidden md:block transition-all duration-500 ease-in-out">
@@ -92,7 +117,12 @@ export default function Navigation() {
             >
               <Link
                 href="/menu"
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/menu")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                }`}
+                aria-current={isRouteActive("/menu") ? "page" : undefined}
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -105,7 +135,7 @@ export default function Navigation() {
               <a
                 href="#location"
                 onClick={handleLocationClick}
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20"
+                className={`${baseDesktopLink} ${inactiveDesktopLink}`}
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -134,7 +164,12 @@ export default function Navigation() {
 
               <Link
                 href="/order"
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/order")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                }`}
+                aria-current={isRouteActive("/order") ? "page" : undefined}
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -145,8 +180,32 @@ export default function Navigation() {
                 </span>
               </Link>
               <Link
+                href="/orders"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/orders")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                }`}
+                aria-current={isRouteActive("/orders") ? "page" : undefined}
+              >
+                <span
+                  className={`transition-all duration-300 uppercase ${
+                    isScrolled ? "text-base" : "text-lg"
+                  }`}
+                >
+                  Orders
+                </span>
+              </Link>
+              <Link
                 href="/rewards"
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/rewards")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                }`}
+                aria-current={
+                  isRouteActive("/rewards") ? "page" : undefined
+                }
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -158,7 +217,14 @@ export default function Navigation() {
               </Link>
               <Link
                 href="/suggest"
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20 relative"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/suggest")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                } relative`}
+                aria-current={
+                  isRouteActive("/suggest") ? "page" : undefined
+                }
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -170,7 +236,12 @@ export default function Navigation() {
               </Link>
               <Link
                 href="/shop"
-                className="text-elite-black hover:bg-elite-burgundy hover:text-elite-white px-6 py-4 rounded-full transition-all duration-300 font-cabin font-bold tracking-wider hover:scale-110 transform hover:shadow-xl hover:shadow-elite-burgundy/30 border-2 border-transparent hover:border-elite-burgundy/20 relative"
+                className={`${baseDesktopLink} ${
+                  isRouteActive("/shop")
+                    ? activeDesktopLink
+                    : inactiveDesktopLink
+                } relative`}
+                aria-current={isRouteActive("/shop") ? "page" : undefined}
               >
                 <span
                   className={`transition-all duration-300 uppercase ${
@@ -216,16 +287,22 @@ export default function Navigation() {
               className={`bg-elite-cream rounded-full flex items-center justify-center shadow-xl transition-all duration-300 active:scale-95 border-2 border-elite-burgundy/20 ${
                 isScrolled ? "w-10 h-10" : "w-12 h-12"
               }`}
+              type="button"
+              aria-controls={mobileMenuId}
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
             >
               {mobileMenuOpen ? (
                 <X
                   size={isScrolled ? 20 : 24}
                   className="text-elite-black transition-all duration-300"
+                  aria-hidden="true"
                 />
               ) : (
                 <Menu
                   size={isScrolled ? 20 : 24}
                   className="text-elite-black transition-all duration-300"
+                  aria-hidden="true"
                 />
               )}
             </button>
@@ -234,11 +311,22 @@ export default function Navigation() {
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
             <div className="mt-4 py-6 border-t border-elite-burgundy/20 bg-elite-cream rounded-lg mx-2">
-              <div className="flex flex-col space-y-3 px-4">
+              <div
+                className="flex flex-col space-y-3 px-4"
+                id={mobileMenuId}
+                role="menu"
+                aria-label="Mobile navigation"
+              >
                 <Link
                   href="/menu"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105"
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/menu") ? activeMobileLink : ""
+                  }`}
+                  aria-current={
+                    isRouteActive("/menu") ? "page" : undefined
+                  }
+                  role="menuitem"
                 >
                   Menu
                 </Link>
@@ -248,35 +336,73 @@ export default function Navigation() {
                     handleLocationClick(e);
                     setMobileMenuOpen(false);
                   }}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105"
+                  className={baseMobileLink}
+                  role="menuitem"
                 >
                   Location
                 </a>
                 <Link
                   href="/order"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105 relative"
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/order") ? activeMobileLink : ""
+                  } relative`}
+                  aria-current={
+                    isRouteActive("/order") ? "page" : undefined
+                  }
+                  role="menuitem"
                 >
                   Order
                 </Link>
                 <Link
+                  href="/orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/orders") ? activeMobileLink : ""
+                  } relative`}
+                  aria-current={
+                    isRouteActive("/orders") ? "page" : undefined
+                  }
+                  role="menuitem"
+                >
+                  Orders
+                </Link>
+                <Link
                   href="/rewards"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105 relative"
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/rewards") ? activeMobileLink : ""
+                  } relative`}
+                  aria-current={
+                    isRouteActive("/rewards") ? "page" : undefined
+                  }
+                  role="menuitem"
                 >
                   Rewards
                 </Link>
                 <Link
                   href="/suggest"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105 relative"
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/suggest") ? activeMobileLink : ""
+                  } relative`}
+                  aria-current={
+                    isRouteActive("/suggest") ? "page" : undefined
+                  }
+                  role="menuitem"
                 >
                   AI Suggest
                 </Link>
                 <Link
                   href="/shop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-white text-elite-black font-cabin text-base font-semibold py-4 px-6 rounded-full transition-all duration-300 hover:bg-elite-burgundy hover:text-elite-cream hover:shadow-lg hover:scale-105 relative"
+                  className={`${baseMobileLink} ${
+                    isRouteActive("/shop") ? activeMobileLink : ""
+                  } relative`}
+                  aria-current={
+                    isRouteActive("/shop") ? "page" : undefined
+                  }
+                  role="menuitem"
                 >
                   Shop
                   <span className="absolute -top-2 -right-2 bg-elite-burgundy text-elite-cream text-xs px-2 py-1 rounded-full font-bold">

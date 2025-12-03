@@ -11,7 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function NearbyCafesSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     // Check for reduced motion preference
@@ -96,11 +96,15 @@ export default function NearbyCafesSection() {
       ref={sectionRef}
       id="location"
       className="bg-elite-cream relative py-20 lg:py-32"
+      aria-labelledby="nearby-cafes-heading"
     >
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Modern Section Header */}
         <div className="text-center mb-16 lg:mb-20">
-          <h2 className="font-calistoga text-elite-black text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-tight mb-8">
+          <h2
+            id="nearby-cafes-heading"
+            className="font-calistoga text-elite-black text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-tight mb-8"
+          >
             Find Your Way
             <br />
             <span className="text-elite-burgundy">to Elite</span>
@@ -113,10 +117,12 @@ export default function NearbyCafesSection() {
         {/* Main Content - Modern Card Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-16">
           {/* Interactive Map Card */}
-          <div
+          <button
             ref={mapRef}
-            className="group relative rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-700 h-[450px] lg:h-[500px] cursor-pointer transform hover:scale-[1.02]"
+            type="button"
+            className="group relative w-full rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-700 h-[450px] lg:h-[500px] cursor-pointer transform hover:scale-[1.02] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-elite-burgundy"
             onClick={handleGetDirections}
+            aria-label="Open Google Maps directions to Elite Cafee in a new tab"
           >
             {/* Map Image */}
             <Image
@@ -138,7 +144,7 @@ export default function NearbyCafesSection() {
               <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-elite-burgundy rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-elite-white" />
+                    <MapPin className="w-6 h-6 text-elite-white" aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <p className="text-elite-black font-cabin font-bold text-lg">
@@ -148,11 +154,14 @@ export default function NearbyCafesSection() {
                       Tap to get directions
                     </p>
                   </div>
-                  <Navigation className="w-5 h-5 text-elite-black/60 group-hover:text-elite-black transition-colors duration-300" />
+                  <Navigation
+                    className="w-5 h-5 text-elite-black/60 group-hover:text-elite-black transition-colors duration-300"
+                    aria-hidden="true"
+                  />
                 </div>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Modern Info Card */}
           <div className="bg-elite-cream/80 backdrop-blur-md rounded-3xl p-8 lg:p-10 shadow-2xl border border-elite-burgundy/20 flex flex-col justify-center">
@@ -168,7 +177,10 @@ export default function NearbyCafesSection() {
               {/* Address */}
               <div className="space-y-3">
                 <div className="flex items-start space-x-3">
-                  <MapPin className="w-6 h-6 text-elite-burgundy mt-1 flex-shrink-0" />
+                  <MapPin
+                    className="w-6 h-6 text-elite-burgundy mt-1 flex-shrink-0"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-elite-black font-cabin text-lg leading-relaxed">
                       {cafe.address}
@@ -185,7 +197,7 @@ export default function NearbyCafesSection() {
 
               {/* Hours */}
               <div className="flex items-center space-x-3">
-                <Clock className="w-6 h-6 text-elite-burgundy flex-shrink-0" />
+                <Clock className="w-6 h-6 text-elite-burgundy flex-shrink-0" aria-hidden="true" />
                 <p className="text-elite-black font-cabin text-lg">
                   {cafe.hours}
                 </p>
@@ -195,9 +207,13 @@ export default function NearbyCafesSection() {
               <button
                 onClick={handleGetDirections}
                 className="group relative w-full bg-gradient-to-r from-elite-burgundy to-elite-dark-burgundy text-elite-black font-cabin font-bold text-xl py-5 px-8 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden border-2 border-elite-burgundy/50 hover:border-elite-burgundy"
+                aria-label="Open directions to Elite Cafee in Google Maps"
               >
                 <span className="relative z-10 flex items-center justify-center space-x-3">
-                  <Navigation className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+                  <Navigation
+                    className="w-6 h-6 group-hover:scale-110 transition-transform duration-300"
+                    aria-hidden="true"
+                  />
                   <span className="group-hover:scale-105 transition-transform duration-300">
                     Get Directions
                   </span>
@@ -220,8 +236,9 @@ export default function NearbyCafesSection() {
             <button
               onClick={handleContact}
               className="group inline-flex items-center space-x-3 bg-elite-burgundy text-elite-white font-cabin font-bold text-lg py-4 px-8 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              aria-label="Message Elite Cafee on Facebook"
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5" aria-hidden="true" />
               <span>Message us on Facebook</span>
             </button>
           </div>

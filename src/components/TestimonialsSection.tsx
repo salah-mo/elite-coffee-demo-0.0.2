@@ -109,9 +109,10 @@ export default function TestimonialsSection() {
     <section
       ref={sectionRef}
       className="bg-elite-cream relative overflow-hidden py-12 lg:py-20"
+      aria-labelledby="testimonials-heading"
     >
       {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5" aria-hidden="true">
         <div className="absolute top-10 left-10 w-32 h-32 bg-elite-burgundy rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-40 h-40 bg-elite-cream rounded-full blur-3xl"></div>
       </div>
@@ -119,7 +120,10 @@ export default function TestimonialsSection() {
       <div className="relative max-w-6xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="font-calistoga text-elite-black text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight mb-6">
+          <h2
+            id="testimonials-heading"
+            className="font-calistoga text-elite-black text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight mb-6"
+          >
             What People
             <br />
             <span className="text-elite-burgundy">Love About Us</span>
@@ -134,9 +138,10 @@ export default function TestimonialsSection() {
           {/* Left Column - Testimonials */}
           <div className="space-y-6 flex flex-col justify-center min-h-[600px] lg:min-h-[700px] xl:min-h-[800px]">
             {testimonials.map((testimonial, idx) => (
-              <div
+              <article
                 key={idx}
                 className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-elite-burgundy/10 hover:border-elite-burgundy/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                aria-label={`Testimonial from ${testimonial.author}`}
               >
                 {/* Quote Icon */}
                 <div className="text-elite-burgundy text-3xl font-calistoga mb-4 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
@@ -165,7 +170,7 @@ export default function TestimonialsSection() {
 
                 {/* Hover effect overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-elite-burgundy/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-              </div>
+              </article>
             ))}
           </div>
 
