@@ -5,15 +5,24 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-elite-burgundy text-elite-white relative">
+    <footer
+      className="bg-elite-burgundy text-elite-white relative"
+      aria-labelledby="footer-heading"
+    >
       <div className="relative max-w-7xl mx-auto px-6 py-16">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-16">
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-16"
+          role="presentation"
+        >
           {/* Brand Section */}
           <div className="space-y-6">
             {/* Tagline */}
             <div className="space-y-4">
-              <h3 className="font-calistoga text-elite-white text-3xl md:text-4xl leading-tight">
+              <h3
+                id="footer-heading"
+                className="font-calistoga text-elite-white text-3xl md:text-4xl leading-tight"
+              >
                 Life Begins
                 <br />
                 After Coffee
@@ -35,7 +44,7 @@ export default function Footer() {
                 Explore our world
               </p>
             </div>
-            <nav className="space-y-4">
+            <nav className="space-y-4" aria-label="Footer navigation">
               <Link
                 href="/menu"
                 className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
@@ -73,7 +82,7 @@ export default function Footer() {
                 Our offerings
               </p>
             </div>
-            <nav className="space-y-4">
+            <nav className="space-y-4" aria-label="Menu categories">
               <Link
                 href="/menu/classic-drinks"
                 className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
@@ -142,15 +151,17 @@ export default function Footer() {
           <h4 className="font-calistoga text-elite-white text-2xl font-semibold mb-6">
             Follow Us
           </h4>
-          <div className="flex justify-center space-x-6">
+          <div className="flex justify-center space-x-6" role="list">
             {/* Instagram */}
             <a
               href="https://instagram.com/officieleliteeg"
               target="_blank"
               rel="noopener noreferrer"
               className="w-16 h-16 bg-elite-cream rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:bg-elite-white"
+              aria-label="Instagram"
+              role="listitem"
             >
-              <Instagram className="w-8 h-8 text-elite-burgundy" />
+              <Instagram className="w-8 h-8 text-elite-burgundy" aria-hidden="true" />
             </a>
 
             {/* Facebook */}
@@ -159,8 +170,10 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className="w-16 h-16 bg-elite-cream rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:bg-elite-white"
+              aria-label="Facebook"
+              role="listitem"
             >
-              <Facebook className="w-8 h-8 text-elite-burgundy" />
+              <Facebook className="w-8 h-8 text-elite-burgundy" aria-hidden="true" />
             </a>
 
             {/* TikTok */}
@@ -169,11 +182,14 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className="w-16 h-16 bg-elite-cream rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:bg-elite-white"
+              aria-label="TikTok"
+              role="listitem"
             >
               <svg
                 className="w-8 h-8 text-elite-burgundy"
                 viewBox="0 0 24 24"
                 fill="currentColor"
+                aria-hidden="true"
               >
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
               </svg>
@@ -185,8 +201,10 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className="w-16 h-16 bg-elite-cream rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:bg-elite-white"
+              aria-label="Official website"
+              role="listitem"
             >
-              <Globe className="w-8 h-8 text-elite-burgundy" />
+              <Globe className="w-8 h-8 text-elite-burgundy" aria-hidden="true" />
             </a>
           </div>
         </div>

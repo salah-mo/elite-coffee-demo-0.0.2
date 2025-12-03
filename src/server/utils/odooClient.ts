@@ -2,6 +2,21 @@
 import axios, { AxiosInstance } from "axios";
 import https from "node:https";
 import type { Order, OrderItem } from "@/types";
+import { OrderStatus } from "@/types";
+
+function formatOdooDatetime(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export interface OdooConfig {
   host: string; // e.g. https://odoo.example.com:8069
@@ -298,6 +313,150 @@ export class OdooClient {
     return saleId;
   }
 
+  async syncSaleOrderStatus(
+    saleId: number,
+    status: OrderStatus,
+    options?: { note?: string },
+  ): Promise<{
+    messagePosted: boolean;
+    actionPerformed?: string;
+    customFieldUpdated?: boolean;
+  }> {
+    const summary: {
+      messagePosted: boolean;
+      actionPerformed?: string;
+      customFieldUpdated?: boolean;
+    } = {
+      messagePosted: false,
+    };
+
+    const statusLabel = status.replace(/_/g, " ");
+    const safeStatus = escapeHtml(statusLabel);
+    const safeNote = options?.note ? escapeHtml(options.note) : "";
+    const noteSuffix = safeNote ? ` - ${safeNote}` : "";
+    const body = `<p>Website status updated to <b>${safeStatus}</b>${noteSuffix}</p>`;
+
+    try {
+      await this.rpc("sale.order", "message_post", [[saleId]], {
+        body,
+        message_type: "comment",
+        subtype_xmlid: "mail.mt_note",
+      });
+      summary.messagePosted = true;
+    } catch (err) {
+      console.warn(
+        `Odoo sale.order message_post failed for order ${saleId}:`,
+        err,
+      );
+    }
+
+    const actionMap: Partial<Record<OrderStatus, string>> = {
+      [OrderStatus.CONFIRMED]: "action_confirm",
+      [OrderStatus.CANCELLED]: "action_cancel",
+      [OrderStatus.DELIVERED]: "action_done",
+    };
+
+    const actionMethod = actionMap[status];
+    if (actionMethod) {
+      try {
+        await this.rpc("sale.order", actionMethod, [[saleId]]);
+        summary.actionPerformed = actionMethod;
+      } catch (err) {
+        console.warn(
+          `Odoo sale.order ${actionMethod} failed for order ${saleId}:`,
+          err,
+        );
+      }
+    }
+
+    const customField = process.env.ODOO_SALE_STATUS_FIELD;
+    if (customField) {
+      try {
+        await this.rpc("sale.order", "write", [[saleId], { [customField]: status }]);
+        summary.customFieldUpdated = true;
+      } catch (err) {
+        console.warn(
+          `Odoo sale.order write to ${customField} failed for order ${saleId}:`,
+          err,
+        );
+      }
+    }
+
+    return summary;
+  }
+
+  async syncPosOrderStatus(
+    posOrderId: number,
+    status: OrderStatus,
+    options?: { note?: string },
+  ): Promise<{
+    messagePosted: boolean;
+    customFieldUpdated?: boolean;
+  }> {
+    const summary: {
+      messagePosted: boolean;
+      customFieldUpdated?: boolean;
+    } = {
+      messagePosted: false,
+    };
+
+    const statusLabel = status.replace(/_/g, " ");
+    const safeStatus = escapeHtml(statusLabel);
+    const safeNote = options?.note ? escapeHtml(options.note) : "";
+    const noteSuffix = safeNote ? ` - ${safeNote}` : "";
+    const body = `<p>Website status updated to <b>${safeStatus}</b>${noteSuffix}</p>`;
+
+    try {
+      await this.rpc("pos.order", "message_post", [[posOrderId]], {
+        body,
+        message_type: "comment",
+        subtype_xmlid: "mail.mt_note",
+      });
+      summary.messagePosted = true;
+    } catch (err) {
+      console.warn(
+        `Odoo pos.order message_post failed for order ${posOrderId}:`,
+        err,
+      );
+    }
+
+    const customField = process.env.ODOO_POS_STATUS_FIELD;
+    if (customField) {
+      try {
+        await this.rpc("pos.order", "write", [[posOrderId], { [customField]: status }]);
+        summary.customFieldUpdated = true;
+      } catch (err) {
+        console.warn(
+          `Odoo pos.order write to ${customField} failed for order ${posOrderId}:`,
+          err,
+        );
+      }
+    }
+
+    return summary;
+  }
+
+  async getSaleOrderState(
+    saleId: number,
+  ): Promise<{ id: number; state: string; raw: Record<string, unknown> } | null> {
+    const records = await this.searchRead<Record<string, unknown>>(
+      "sale.order",
+      [["id", "=", saleId]],
+      ["id", "state"],
+      { limit: 1 },
+    );
+    if (!records?.length) {
+      return null;
+    }
+    const record = records[0];
+    const stateValue = typeof record.state === "string" ? record.state : String(record.state ?? "");
+    return {
+      id: Number(record.id ?? saleId),
+      state: stateValue,
+      raw: record,
+    };
+  }
+
   /** Check whether a given model is available in this Odoo DB */
   async modelExists(modelName: string): Promise<boolean> {
     const count = await this.rpc<number>("ir.model", "search_count", [
@@ -507,8 +666,8 @@ export class OdooClient {
     try {
       // Generate pos_reference and date_order for the fallback
       const pos_reference = websiteOrder.orderNumber || uid;
-      const date_order = new Date().toISOString();
-      
+      const date_order = formatOdooDatetime(new Date());
+
       // Create the POS order first
       const createResult = await this.rpc<number | number[]>("pos.order", "create", [
         {

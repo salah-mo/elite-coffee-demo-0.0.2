@@ -136,6 +136,11 @@ export interface Order {
       saleOrderId?: number;
       posOrderId?: number;
       url?: string;
+      lastStatus?: OrderStatus;
+      lastStatusSync?: string;
+      saleSyncStatus?: "SUCCESS" | "FAILED";
+      posSyncStatus?: "SUCCESS" | "FAILED";
+      warnings?: string[];
     };
   };
   items: OrderItem[];

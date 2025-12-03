@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PaymentMethod, OrderType } from "@/types";
+import { PaymentMethod, OrderType, OrderStatus } from "@/types";
 
 export const createOrderSchema = z.object({
   paymentMethod: z.nativeEnum(PaymentMethod),
@@ -42,3 +42,10 @@ export const createOrderSchema = z.object({
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+export const updateOrderStatusSchema = z.object({
+  status: z.nativeEnum(OrderStatus),
+  note: z.string().max(500).optional(),
+});
+
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
