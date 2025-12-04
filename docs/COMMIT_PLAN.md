@@ -1,5 +1,7 @@
 # Detailed Commit and Push Plan
 
+> **Update (Dec 2025):** This plan predates the Odoo-backed menu migration. Ignore any steps referencing `src/lib/menuData.ts` or JSON storage artifacts—they have been removed in favor of live data from `src/server/services/menuService.ts`.
+
 ## Current Branch: Backend
 **Last Sync:** Up to date with `origin/Backend`
 

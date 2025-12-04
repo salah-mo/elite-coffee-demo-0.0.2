@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { cartDB } from "@/server/utils/jsonDatabase";
+import { cartStore } from "@/server/services/cartStore";
 import {
   successResponse,
   jsonResponse,
@@ -21,7 +21,7 @@ export async function DELETE(
     const userId = request.headers.get("x-user-id") || "demo-user";
     const { itemId } = await params;
 
-    cartDB.removeItem(userId, itemId);
+    cartStore.removeItem(userId, itemId);
 
     return jsonResponse(successResponse(null, "Item removed from cart"));
   } catch (error) {
@@ -45,7 +45,7 @@ export async function PATCH(
 
     console.log("PATCH request received:", { userId, itemId, quantity }); // Debug log
 
-    cartDB.updateQuantity(userId, itemId, quantity);
+    cartStore.updateQuantity(userId, itemId, quantity);
 
     console.log("Cart item updated successfully"); // Debug log
     return jsonResponse(successResponse(null, "Cart item updated"));

@@ -1,15 +1,17 @@
+import type { MenuItem } from "@/types";
 import {
   getCategoryById,
   getSubCategoryById,
   getItemById,
   getRecommendedItems,
-  getAllCategories,
-  MenuItem,
-} from "@/lib/menuData";
+  getMenuCategories,
+} from "@/server/services/menuService";
 import { notFound } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ItemDetailClient from "@/components/ItemDetailClient";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Generate static params for all menu items
@@ -17,24 +19,28 @@ import ItemDetailClient from "@/components/ItemDetailClient";
  * Following Next.js best practices for static exports
  */
 export async function generateStaticParams() {
-  const categories = getAllCategories();
-  const params = [];
-
-  // Generate params for all category-subcategory-item combinations
-  // This ensures all item detail pages are generated at build time
-  for (const category of categories) {
-    for (const subCategory of category.subCategories) {
-      for (const item of subCategory.items) {
-        params.push({
-          category: category.id,
-          subcategory: subCategory.id,
-          item: item.id,
-        });
+  try {
+    const categories = await getMenuCategories();
+    const params: Array<{ category: string; subcategory: string; item: string }> = [];
+    for (const category of categories) {
+      for (const subCategory of category.subCategories) {
+        for (const item of subCategory.items) {
+          params.push({
+            category: category.id,
+            subcategory: subCategory.id,
+            item: item.id,
+          });
+        }
       }
     }
+    return params;
+  } catch (error) {
+    console.warn(
+      "Failed to generate static params for menu items:",
+      error,
+    );
+    return [];
   }
-
-  return params;
 }
 
 export default async function ItemDetailPage({
@@ -48,21 +54,20 @@ export default async function ItemDetailPage({
     item: itemId,
   } = await params;
 
-  const category = getCategoryById(categoryId);
-  const subCategory = getSubCategoryById(categoryId, subCategoryId);
-  const item = getItemById(itemId);
-  const allCategories = getAllCategories();
+  const category = await getCategoryById(categoryId);
+  const subCategory = await getSubCategoryById(categoryId, subCategoryId);
+  const item = await getItemById(itemId);
+  const allCategories = await getMenuCategories();
 
   if (!category || !subCategory || !item) {
     notFound();
   }
 
-  const recommendedItems = getRecommendedItems(item);
+  const recommendedItems = await getRecommendedItems(item);
 
-  // Get the actual recommended items data
-  const recommendedItemsData = recommendedItems
-    .map((rec) => getItemById(rec.itemId))
-    .filter((item): item is MenuItem => item !== undefined);
+  const recommendedItemsData = (
+    await Promise.all(recommendedItems.map((rec) => getItemById(rec.itemId)))
+  ).filter((candidate): candidate is MenuItem => Boolean(candidate));
 
   return (
     <main className="page-transition loaded">
@@ -75,7 +80,7 @@ export default async function ItemDetailPage({
         recommendedItems={recommendedItems}
         recommendedItemsData={recommendedItemsData}
       />
-      <Footer />
+      <Footer categories={allCategories} />
     </main>
   );
 }

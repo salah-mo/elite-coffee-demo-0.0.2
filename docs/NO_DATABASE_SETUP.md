@@ -1,5 +1,7 @@
 # 🚀 Elite Coffee Shop - No SQL Database Required
 
+> **Update:** The project no longer ships with the JSON file database described below. Menu data comes from Odoo and carts/orders live in the in-memory stores under `src/server/services`. Use this document as legacy reference only.
+
 Your Elite Coffee Shop runs with a fully functional backend using **persistent JSON file storage**. No PostgreSQL, MySQL, or any SQL database needed!
 
 ## ✨ What You Get Out of the Box
@@ -124,8 +126,9 @@ elite-coffee-shop/
 │   │   └── middleware/       # Auth & security
 │   ├── hooks/                # Custom React hooks
 │   ├── types/                # TypeScript types
-│   └── lib/
-│       └── menuData.ts       # Menu data source
+│   └── server/
+│       └── services/
+│           └── menuService.ts  # Live Odoo-backed menu loader (replaces static data)
 └── ...
 ```
 

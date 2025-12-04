@@ -8,8 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "npx tsc --noEmit && next lint",
-    "format": "npx biome format --write",
-    "db:reset": "echo {\"carts\":{},\"orders\":[]} > data/database.json && echo Database reset complete!"
+    "format": "npx biome format --write"
   },
   "dependencies": {
     "axios": "^1.13.1",

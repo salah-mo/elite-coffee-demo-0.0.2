@@ -10,13 +10,10 @@ import {
   Utensils,
   Home,
   ArrowRight,
+  ShoppingCart,
 } from "lucide-react";
-import {
-  MenuItem,
-  RecommendedItem,
-  MenuCategory,
-  SubCategory,
-} from "@/lib/menuData";
+import type { MenuItem, RecommendedItem, MenuCategory, SubCategory } from "@/types";
+import { useCart } from "@/hooks/useCart";
 
 interface ItemDetailClientProps {
   item: MenuItem;
@@ -35,6 +32,8 @@ export default function ItemDetailClient({
   recommendedItems,
   recommendedItemsData,
 }: ItemDetailClientProps) {
+  const { addToCart, loading } = useCart();
+  
   // Initialize state with proper defaults to prevent hydration mismatches
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -44,6 +43,7 @@ export default function ItemDetailClient({
     subCategory.id,
   );
   const [isClient, setIsClient] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   // Ensure client-side rendering to prevent hydration mismatches
   useEffect(() => {
@@ -130,6 +130,27 @@ export default function ItemDetailClient({
         ? current.filter((t) => t !== toppingName)
         : [...current, toppingName];
     });
+  };
+
+  const handleAddToOrder = async () => {
+    if (!item.available || isAdding) return;
+    
+    setIsAdding(true);
+    try {
+      await addToCart(
+        item.id,
+        1,
+        {
+          size: selectedSize || undefined,
+          toppings: selectedToppings.length > 0 ? selectedToppings : undefined,
+          flavor: selectedFlavor || undefined,
+        },
+      );
+    } catch (error) {
+      console.error("Failed to add item to cart:", error);
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   // Don't render until client-side to prevent hydration issues
@@ -383,25 +404,32 @@ export default function ItemDetailClient({
               </div>
             )}
 
-            {/* Add to Order Button - Commented out for now */}
-            {/* <button
-               disabled={!item.available}
-               className={`w-full py-6 rounded-2xl font-cabin font-bold text-xl transition-all duration-300 border-2 ${
-                 item.available
-                   ? 'bg-gradient-to-r from-elite-burgundy to-elite-dark-burgundy text-elite-dark-burgundy hover:scale-105 hover:shadow-xl shadow-lg border-elite-burgundy/30 hover:border-elite-burgundy/50'
-                   : 'bg-elite-dark-cream text-elite-black/40 cursor-not-allowed border-elite-dark-cream/30'
-               }`}
-             >
-               {item.available ? (
-                 <div className="flex items-center justify-center gap-3">
-                   <span>Add to Order</span>
-                   <span className="text-lg">•</span>
-                   <span>{totalPrice} EGP</span>
-                 </div>
-               ) : (
-                 'Temporarily Unavailable'
-               )}
-             </button> */}
+            {/* Add to Order Button */}
+            <button
+              onClick={handleAddToOrder}
+              disabled={!item.available || isAdding}
+              className={`w-full py-6 rounded-2xl font-cabin font-bold text-xl transition-all duration-300 border-2 ${
+                item.available
+                  ? 'bg-gradient-to-r from-elite-burgundy to-elite-dark-burgundy text-elite-cream hover:scale-105 hover:shadow-xl shadow-lg border-elite-burgundy/30 hover:border-elite-burgundy/50'
+                  : 'bg-elite-dark-cream text-elite-black/40 cursor-not-allowed border-elite-dark-cream/30'
+              }`}
+            >
+              {!item.available ? (
+                'Temporarily Unavailable'
+              ) : isAdding ? (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-5 h-5 border-2 border-elite-cream border-t-transparent rounded-full animate-spin"></div>
+                  <span>Adding...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-3">
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>Add to Order</span>
+                  <span className="text-lg">•</span>
+                  <span>{totalPrice} EGP</span>
+                </div>
+              )}
+            </button>
           </div>
         </div>
 

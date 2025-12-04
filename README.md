@@ -1,6 +1,6 @@
 # Elite Coffee Shop - Full Stack Application
 
-A modern, production-ready coffee shop web application built with Next.js 15, TypeScript, and JSON file-based persistent storage. Optional Odoo ERP/POS integration for real-world order management.
+A modern, production-ready coffee shop web application built with Next.js 15, TypeScript, and live Odoo product data. Cart and order flows now operate entirely in memory unless you connect a different persistent store, keeping the app lightweight while relying on Odoo as the source of truth for the menu.
 
 > **Documentation:** All docs live in the `docs/` folder.
 > **Quick Start:** [QUICKSTART.md](./docs/QUICKSTART.md) · [QUICKSTART_GUIDE.md](./docs/QUICKSTART_GUIDE.md)
@@ -15,7 +15,7 @@ A modern, production-ready coffee shop web application built with Next.js 15, Ty
 - ✅ **Cart Management** - Add, update, remove items with customizations
 - ✅ **Order Processing** - Complete order workflow from cart to completion
 - ✅ **RESTful API** - 10+ well-structured endpoints
-- ✅ **JSON File Storage** - Persistent data across server restarts
+- ✅ **Odoo-Sourced Menu** - Live categories and products pulled from your Odoo instance
 - ✅ **Type Safety** - Full TypeScript coverage with Zod validation
 - ✅ **Odoo Integration** - Optional ERP/POS connectivity (Sales & Kitchen Display)
 - ✅ **Modern UI** - Responsive design with Tailwind CSS
@@ -23,7 +23,7 @@ A modern, production-ready coffee shop web application built with Next.js 15, Ty
 
 ### Architecture Highlights
 - **Backend**: Next.js 15 API routes with server-side rendering
-- **Data Storage**: JSON file (`data/database.json`) - no SQL setup required
+- **Data Layer**: Odoo-backed menu service + in-memory cart/order store (no local JSON database)
 - **Validation**: Zod schemas for request/response validation
 - **Error Handling**: Consistent error responses across all endpoints
 - **User Context**: Header-based user identification (`x-user-id`)
@@ -42,7 +42,7 @@ A modern, production-ready coffee shop web application built with Next.js 15, Ty
 ### Backend
 - **Runtime:** Node.js 18+
 - **API:** Next.js Route Handlers (RESTful)
-- **Data Storage:** JSON File (`data/database.json`) - persistent, thread-safe
+- **Data Layer:** Odoo product API plus in-memory cart/order store
 - **Validation:** Zod schemas
 - **Integration:** Optional Odoo JSON-RPC client
 
@@ -85,6 +85,8 @@ ODOO_HOST=https://your-odoo.odoo.com
 ODOO_DB=your_db
 ODOO_USERNAME=your_user@example.com
 ODOO_API_KEY=your_api_key
+# Leave unset or 0 for live menu fetches, set >0 (ms) to cache temporarily
+ODOO_MENU_CACHE_TTL_MS=0
 ```
 
 See [ODOO_INTEGRATION.md](./docs/ODOO_INTEGRATION.md) for complete guide.
@@ -188,7 +190,6 @@ npm run build     # Build for production
 npm run start     # Start production server
 npm run lint      # TypeScript checking + ESLint
 npm run format    # Format code with Biome
-npm run db:reset  # Reset JSON database (clears all data)
 ```
 
 ## 🏗️ Development Workflow
@@ -220,8 +221,9 @@ npm run db:reset  # Reset JSON database (clears all data)
 | `ODOO_PASSWORD` | Odoo password (fallback) | No |
 | `ODOO_TIMEOUT_MS` | Request timeout in ms (default: 20000) | No |
 | `ODOO_INSECURE_SSL` | Allow self-signed certs (dev only) | No |
+| `ODOO_MENU_CACHE_TTL_MS` | Menu cache lifetime in ms (`0` = always fetch from Odoo) | No |
 
-**Note:** No `DATABASE_URL` needed! The app uses JSON file storage (`data/database.json`).
+**Tip:** No `DATABASE_URL` is required out of the box. Connect your own database only if you need persistence beyond the in-memory cart/order store.
 
 ## 🤝 Contributing
 
@@ -239,9 +241,8 @@ This project is private and proprietary.
 ## 🎯 Troubleshooting
 
 ### Data Issues
-- Reset database: `npm run db:reset`
-- Verify `data/database.json` exists and is valid JSON
-- Check file permissions
+- Remember that carts and orders live in memory by default and reset when the server restarts.
+- To persist orders long-term, connect Odoo sales/POS sync or wire up your own database layer.
 
 ### Build Errors
 ```powershell

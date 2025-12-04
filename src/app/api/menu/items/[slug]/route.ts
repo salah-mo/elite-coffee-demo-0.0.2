@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
-import { menuData } from "@/lib/menuData";
+import { getItemById } from "@/server/services/menuService";
 import {
   successResponse,
   jsonResponse,
   handleApiError,
+  errorResponse,
 } from "@/server/utils/apiHelpers";
+import { isOdooConfigured } from "@/server/utils/odooClient";
 
 /**
  * GET /api/menu/items/[slug]
@@ -16,19 +18,14 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    let menuItem = null;
-
-    // Search through all categories and subcategories for the item
-    for (const category of menuData) {
-      for (const subCategory of category.subCategories) {
-        const item = subCategory.items.find((item) => item.id === slug);
-        if (item) {
-          menuItem = item;
-          break;
-        }
-      }
-      if (menuItem) break;
+    if (!isOdooConfigured()) {
+      return jsonResponse(
+        errorResponse("Odoo is not configured"),
+        503,
+      );
     }
+
+    const menuItem = await getItemById(slug);
 
     if (!menuItem) {
       return jsonResponse(

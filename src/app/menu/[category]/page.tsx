@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCategoryById } from "@/lib/menuData";
+import { getCategoryById, getMenuCategories } from "@/server/services/menuService";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,8 +10,9 @@ import {
 import { notFound } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { getAllCategories } from "@/lib/menuData";
 import DrinkCard from "@/components/DrinkCard";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Generate static params for all menu categories
@@ -19,13 +20,13 @@ import DrinkCard from "@/components/DrinkCard";
  * Following Next.js best practices for static exports
  */
 export async function generateStaticParams() {
-  const categories = getAllCategories();
-
-  // Return all category IDs as static params
-  // This ensures all category pages are generated at build time
-  return categories.map((category) => ({
-    category: category.id,
-  }));
+  try {
+    const categories = await getMenuCategories();
+    return categories.map((category) => ({ category: category.id }));
+  } catch (error) {
+    console.warn("Failed to generate static params for categories:", error);
+    return [];
+  }
 }
 
 export default async function CategoryPage({
@@ -34,8 +35,8 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category: categoryId } = await params;
-  const category = getCategoryById(categoryId);
-  const allCategories = getAllCategories();
+  const category = await getCategoryById(categoryId);
+  const allCategories = await getMenuCategories();
 
   if (!category) {
     notFound();
@@ -210,7 +211,7 @@ export default async function CategoryPage({
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer categories={allCategories} />
     </main>
   );
 }

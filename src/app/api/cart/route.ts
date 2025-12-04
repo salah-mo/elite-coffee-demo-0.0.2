@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-import { menuData } from "@/lib/menuData";
-import { cartDB } from "@/server/utils/jsonDatabase";
+import { cartStore } from "@/server/services/cartStore";
 import {
   successResponse,
   jsonResponse,
@@ -12,6 +11,7 @@ import { addToCartSchema } from "@/server/validators/cartSchemas";
 import { BadRequestError, NotFoundError } from "@/server/utils/errors";
 import { CART_CONFIG, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 import type { CartItem } from "@/types";
+import { getItemById } from "@/server/services/menuService";
 
 /**
  * Calculates cart totals including subtotal, tax, and delivery fee
@@ -34,17 +34,6 @@ function calculateTotals(items: CartItem[]) {
   };
 }
 
-// Utility function to find a menu item by ID
-function findMenuItem(menuItemId: string) {
-  for (const category of menuData) {
-    for (const subCategory of category.subCategories) {
-      const item = subCategory.items.find((item) => item.id === menuItemId);
-      if (item) return item;
-    }
-  }
-  return null;
-}
-
 /**
  * GET /api/cart
  * Retrieves the current user's cart with calculated totals
@@ -53,7 +42,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = getUserId(request);
 
-    const items = cartDB.get(userId);
+    const items = cartStore.get(userId);
     const totals = calculateTotals(items);
 
     return jsonResponse(
@@ -86,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find menu item
-    const menuItem = findMenuItem(menuItemId);
+    const menuItem = await getItemById(menuItemId);
     if (!menuItem) throw new NotFoundError(ERROR_MESSAGES.MENU_ITEM_NOT_FOUND);
 
     // Calculate price
@@ -120,7 +109,7 @@ export async function POST(request: NextRequest) {
       menuItem,
     };
 
-    cartDB.addItem(userId, cartItem);
+    cartStore.addItem(userId, cartItem);
 
     return jsonResponse(
       successResponse(cartItem, SUCCESS_MESSAGES.ITEM_ADDED),
@@ -143,7 +132,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const userId = getUserId(request);
 
-    cartDB.clear(userId);
+    cartStore.clear(userId);
 
     return jsonResponse(successResponse(null, SUCCESS_MESSAGES.CART_CLEARED));
   } catch (error) {

@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
-import { menuData } from "@/lib/menuData";
+import { getCategoryById } from "@/server/services/menuService";
 import {
   successResponse,
   jsonResponse,
   handleApiError,
+  errorResponse,
 } from "@/server/utils/apiHelpers";
+import { isOdooConfigured } from "@/server/utils/odooClient";
 
 /**
  * GET /api/menu/[category]
@@ -16,10 +18,23 @@ export async function GET(
 ) {
   try {
     const { category: categoryId } = await params;
-    const category = menuData.find((cat) => cat.id === categoryId);
+    if (!isOdooConfigured()) {
+      return jsonResponse(
+        errorResponse("Odoo is not configured"),
+        503,
+      );
+    }
+
+    const category = await getCategoryById(categoryId);
 
     if (!category) {
-      return jsonResponse({ success: false, error: "Category not found" }, 404);
+      return jsonResponse(
+        {
+          success: false,
+          error: "Category not found",
+        },
+        404,
+      );
     }
 
     return jsonResponse(successResponse(category));

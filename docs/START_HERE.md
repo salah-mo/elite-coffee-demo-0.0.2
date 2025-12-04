@@ -1,5 +1,7 @@
 # ✅ Project Ready – JSON Database Version
 
+> **Important:** The application no longer uses the JSON file database described below. Menu data now comes from Odoo and carts/orders are stored in memory by default. This document is kept for historical reference and will be replaced with an updated guide soon.
+
 ## 🎉 Success! Your Backend is Ready
 
 Your Elite Coffee Shop project ships with a **fully functional backend** that uses a **JSON file-based database** for persistent storage. Optional integration with **Odoo** is available for real-world orders and POS.

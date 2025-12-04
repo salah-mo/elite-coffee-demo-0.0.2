@@ -66,8 +66,19 @@ export default function OrderPage() {
           },
           cache: "no-store",
         });
-        if (!res.ok) throw new Error("Failed to refresh order status");
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const errorMsg = errorData.message || errorData.error || "Failed to refresh order status";
+          throw new Error(errorMsg);
+        }
+        
         const json = await res.json();
+        
+        if (!json.success || !json.data) {
+          throw new Error(json.error || "Invalid response from server");
+        }
+        
         const updated = json.data as Order;
         setLastOrder(updated);
         const changed = updated.status !== lastOrder.status;
@@ -86,8 +97,6 @@ export default function OrderPage() {
             : "Unable to refresh order status";
         if (!options?.silent) {
           push({ type: "error", message });
-        } else {
-          console.warn(message);
         }
       } finally {
         setStatusRefreshing(false);
@@ -100,6 +109,8 @@ export default function OrderPage() {
     setSubmitting(true);
     setSubmitError(null);
     setLastOrder(null);
+    
+    // Check cart before attempting to place order
     if (!cart || cart.items.length === 0) {
       const message = "Add at least one drink before placing an order";
       setSubmitError(message);
@@ -107,6 +118,7 @@ export default function OrderPage() {
       setSubmitting(false);
       return;
     }
+    
     try {
       const sanitizedNotes = notes.trim();
       const res = await fetch("/api/orders", {
@@ -130,16 +142,33 @@ export default function OrderPage() {
           },
         }),
       });
-      if (!res.ok) throw new Error("Failed to place order");
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.message || errorData.error || `Server error: ${res.status}`;
+        throw new Error(errorMsg);
+      }
+      
       const json = await res.json();
-      setLastOrder(json.data);
+      
+      if (!json.success) {
+        throw new Error(json.error || "Failed to create order");
+      }
+      
+      const createdOrder = json.data as Order;
+      console.log("Order created successfully:", createdOrder.id, createdOrder.orderNumber);
+      setLastOrder(createdOrder);
       push({ type: "success", message: "Order placed successfully" });
       setInternetCardQty(0);
+      setNotes(""); // Clear notes
+      
+      // Refresh cart to reflect server state (cart should be empty)
       await refreshCart();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setSubmitError(msg);
       push({ type: "error", message: msg });
+      console.error("Order placement error:", e);
     } finally {
       setSubmitting(false);
     }

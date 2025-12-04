@@ -19,11 +19,87 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Simple in-memory cache for API responses
+ * Simple in-memory cache for API responses with localStorage persistence
  */
 class ApiCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private readonly localStoragePrefix = "elite-api-cache-";
+  private readonly persistKeys = new Set<string>([
+    "orders-list",
+    "order-",
+    "menu-items",
+    "cart-",
+  ]);
+
+  constructor() {
+    // Load persisted cache from localStorage on initialization
+    if (typeof window !== "undefined") {
+      this.loadFromLocalStorage();
+    }
+  }
+
+  /**
+   * Load cache entries from localStorage
+   */
+  private loadFromLocalStorage(): void {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(this.localStoragePrefix)) {
+          const cacheKey = key.replace(this.localStoragePrefix, "");
+          const value = localStorage.getItem(key);
+          if (value) {
+            const entry = JSON.parse(value) as CacheEntry<unknown>;
+            // Only load if not expired
+            if (Date.now() <= entry.expiry) {
+              this.cache.set(cacheKey, entry);
+            } else {
+              // Clean up expired entries
+              localStorage.removeItem(key);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load cache from localStorage:", err);
+    }
+  }
+
+  /**
+   * Save cache entry to localStorage if it should be persisted
+   */
+  private saveToLocalStorage(key: string, entry: CacheEntry<unknown>): void {
+    if (typeof window === "undefined") return;
+
+    const shouldPersist = Array.from(this.persistKeys).some((pattern) =>
+      key.includes(pattern),
+    );
+
+    if (!shouldPersist) return;
+
+    try {
+      localStorage.setItem(
+        `${this.localStoragePrefix}${key}`,
+        JSON.stringify(entry),
+      );
+    } catch (err) {
+      console.warn(`Failed to persist cache key ${key}:`, err);
+    }
+  }
+
+  /**
+   * Remove cache entry from localStorage
+   */
+  private removeFromLocalStorage(key: string): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      localStorage.removeItem(`${this.localStoragePrefix}${key}`);
+    } catch (err) {
+      console.warn(`Failed to remove cache key ${key} from localStorage:`, err);
+    }
+  }
 
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
@@ -32,6 +108,7 @@ class ApiCache {
     const now = Date.now();
     if (now > entry.expiry) {
       this.cache.delete(key);
+      this.removeFromLocalStorage(key);
       return null;
     }
 
@@ -45,13 +122,30 @@ class ApiCache {
       expiry: Date.now() + ttl,
     };
     this.cache.set(key, entry);
+    this.saveToLocalStorage(key, entry);
   }
 
   delete(key: string): boolean {
+    this.removeFromLocalStorage(key);
     return this.cache.delete(key);
   }
 
   clear(): void {
+    // Clear localStorage cache entries
+    if (typeof window !== "undefined") {
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith(this.localStoragePrefix)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+      } catch (err) {
+        console.warn("Failed to clear localStorage cache:", err);
+      }
+    }
     this.cache.clear();
   }
 
@@ -60,13 +154,14 @@ class ApiCache {
   }
 
   /**
-   * Clean up expired entries
+   * Clean up expired entries from both memory and localStorage
    */
   cleanup(): void {
     const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.expiry) {
         this.cache.delete(key);
+        this.removeFromLocalStorage(key);
       }
     }
   }
@@ -236,6 +331,67 @@ export function getCacheStats() {
 export function clearCache(): void {
   apiCache.clear();
 }
+
+/**
+ * Order-specific cache management
+ */
+export const orderCache = {
+  /**
+   * Get cached orders list
+   */
+  getOrders(userId: string = "demo-user"): { orders: Order[]; total: number } | null {
+    return apiCache.get(`orders-list-${userId}`);
+  },
+
+  /**
+   * Cache orders list
+   */
+  setOrders(
+    data: { orders: Order[]; total: number },
+    userId: string = "demo-user",
+    ttl = 2 * 60 * 1000,
+  ): void {
+    apiCache.set(`orders-list-${userId}`, data, ttl);
+  },
+
+  /**
+   * Get a single cached order
+   */
+  getOrder(orderId: string): Order | null {
+    return apiCache.get(`order-${orderId}`);
+  },
+
+  /**
+   * Cache a single order
+   */
+  setOrder(order: Order, ttl = 5 * 60 * 1000): void {
+    apiCache.set(`order-${order.id}`, order, ttl);
+  },
+
+  /**
+   * Invalidate all order-related caches
+   */
+  invalidateAll(): void {
+    invalidateCache(/^orders?-/);
+  },
+
+  /**
+   * Invalidate cache for a specific order
+   */
+  invalidateOrder(orderId: string): void {
+    apiCache.delete(`order-${orderId}`);
+  },
+
+  /**
+   * Invalidate orders list cache
+   */
+  invalidateList(userId: string = "demo-user"): void {
+    invalidateCache(new RegExp(`^orders-list-.*${userId}`));
+  },
+};
+
+// Import Order type for type safety
+import type { Order } from "@/types";
 
 /**
  * Hook for using cached API data

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { cartDB, orderDB } from "@/server/utils/jsonDatabase";
+import { cartStore } from "@/server/services/cartStore";
+import { orderStore } from "@/server/services/orderStore";
 import { createOdooClient, isOdooConfigured } from "@/server/utils/odooClient";
 import {
   successResponse,
@@ -61,14 +62,14 @@ function describeOdooError(error: unknown, context: string): string {
 
 /**
  * GET /api/orders
- * Get user's orders (JSON database storage)
+ * Get user's orders (in-memory order store)
  */
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id") || "demo-user";
     const { limit = "20", offset = "0" } = getQueryParams(request);
 
-    const allOrders = orderDB.getByUserId(userId);
+    const allOrders = orderStore.getByUserId(userId);
     const total = allOrders.length;
     const orders = allOrders.slice(
       parseInt(offset),
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/orders
- * Create a new order (JSON database storage)
+ * Create a new order (in-memory order store)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -91,26 +92,35 @@ export async function POST(request: NextRequest) {
     const raw = await parseRequestBody(request);
     const body = createOrderSchema.parse(raw);
 
-    const cartItems = cartDB.get(userId);
+    const cartItems = cartStore.get(userId);
     const internetCardQty = body.internetCard?.quantity ?? 0;
     const internetCardTotal = internetCardQty * INTERNET_CARD_UNIT_PRICE;
 
-    if (!cartItems || cartItems.length === 0) {
-      if (internetCardQty > 0) {
-        throw new BadRequestError(
-          "Internet cards must be ordered with at least one drink",
-        );
-      }
+    // Debug logging
+    console.log('Creating order:', {
+      userId,
+      cartItemsCount: cartItems?.length || 0,
+      cartItems: cartItems?.map(i => ({
+        menuItemId: i.menuItemId,
+        name: i.menuItem?.name,
+        quantity: i.quantity,
+        price: i.price
+      })),
+      internetCardQty
+    });
+
+    // Check if cart has items or internet cards
+    if ((!cartItems || cartItems.length === 0) && internetCardQty === 0) {
       throw new BadRequestError("Cart is empty");
     }
 
     // Calculate totals
-    const drinksSubtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const drinksSubtotal = cartItems?.reduce((sum, item) => sum + item.price, 0) || 0;
     const itemsSubtotal = drinksSubtotal + internetCardTotal;
     const deliveryFee = body.orderType === "DELIVERY" ? 15 : 0;
     const total = itemsSubtotal + deliveryFee;
 
-    const orderItems = cartItems.map((item) => ({
+    const orderItems = (cartItems || []).map((item) => ({
       id: `order-item-${Date.now()}-${Math.random()}`,
       menuItemId: item.menuItemId,
       quantity: item.quantity,
@@ -137,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order locally first
-    const order = orderDB.create({
+    const order = orderStore.create({
       id: `order-${Date.now()}`,
       orderNumber: `ORD-${Date.now()}`,
       userId,
@@ -308,15 +318,15 @@ export async function POST(request: NextRequest) {
         updates.status = nextStatus;
       }
 
-      orderDB.update(order.id, updates);
+      orderStore.update(order.id, updates);
     }
 
     // Clear cart after order
-    cartDB.clear(userId);
+    cartStore.clear(userId);
 
     // Return the latest order state
     // In serverless, getById won't work, so find from user's orders
-    const userOrders = orderDB.getByUserId(userId);
+    const userOrders = orderStore.getByUserId(userId);
     const updated = userOrders.find((o) => o.id === order.id) || order;
     return jsonResponse(
       successResponse(updated, "Order created successfully"),

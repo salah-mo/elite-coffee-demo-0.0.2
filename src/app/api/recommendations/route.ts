@@ -11,8 +11,7 @@ import {
   type PreferenceInput,
 } from "@/server/validators/recommendationSchemas";
 import { suggestDrinks } from "@/server/utils/recommender";
-import { getItemById } from "@/lib/menuData";
-import { orderDB } from "@/server/utils/jsonDatabase";
+import { orderStore } from "@/server/services/orderStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +32,7 @@ export async function POST(request: NextRequest) {
     const prefs: PreferenceInput = parsed.data;
 
     // Lightweight personalization using order history
-    const history = orderDB.getByUserId(userId);
+    const history = orderStore.getByUserId(userId);
     const favCount = new Map<string, number>();
     for (const o of history) {
       for (const it of o.items)
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
       .slice(0, 3)
       .map(([id]) => id);
 
-    const { top: baseTop, alternatives: baseAlts } = suggestDrinks(prefs);
+    const { top: baseTop, alternatives: baseAlts } = await suggestDrinks(prefs);
     let top = baseTop;
     let alternatives = baseAlts || [];
     // If a favorite appears in alternatives and scores close to top, promote it

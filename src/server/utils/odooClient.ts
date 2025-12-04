@@ -220,8 +220,29 @@ export class OdooClient {
   private async findOrCreateProduct(
     item: Pick<OrderItem, "menuItemId" | "unitPrice" | "menuItem">,
   ): Promise<number> {
+    const odooProductId = item.menuItem?.odooProductId;
+    if (typeof odooProductId === "number" && Number.isFinite(odooProductId)) {
+      try {
+        const existing = await this.rpc<number[]>("product.product", "search", [
+          [["id", "=", odooProductId]],
+        ]);
+        if (existing && existing.length) {
+          return existing[0];
+        }
+      } catch (error) {
+        console.warn(
+          `Odoo product search by id failed for ${odooProductId}:`,
+          error,
+        );
+      }
+    }
+
     // Use website menuItemId as SKU (default_code). Fallback by name.
-    const sku = item.menuItemId;
+    const sku =
+      (item.menuItem?.odooDefaultCode &&
+        item.menuItem.odooDefaultCode.trim().length > 0
+        ? item.menuItem.odooDefaultCode.trim()
+        : undefined) || item.menuItemId;
     const name = item.menuItem?.name || item.menuItemId;
 
     const domain = sku ? [["default_code", "=", sku]] : [["name", "=", name]];
@@ -260,6 +281,19 @@ export class OdooClient {
       zip?: string;
     },
   ): Promise<number> {
+    // Debug: Log what we're receiving
+    console.log('Creating Odoo sale order for:', {
+      orderId: websiteOrder.id,
+      orderNumber: websiteOrder.orderNumber,
+      itemsCount: websiteOrder.items.length,
+      items: websiteOrder.items.map(i => ({
+        menuItemId: i.menuItemId,
+        name: i.menuItem?.name,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice
+      }))
+    });
+
     // Idempotency: search by client_order_ref
     const existing = await this.rpc<number[]>(
       "sale.order",
@@ -279,6 +313,9 @@ export class OdooClient {
     });
 
     const lines: any[] = [];
+    
+    // Process all order items (drinks, food, internet cards, etc.)
+    // Note: Internet card is already included in websiteOrder.items array
     for (const line of websiteOrder.items) {
       const productId = await this.findOrCreateProduct({
         menuItemId: line.menuItemId,
@@ -589,6 +626,9 @@ export class OdooClient {
 
     // Build POS order lines
     const lines: any[] = [];
+    
+    // Process all order items (drinks, food, internet cards, etc.)
+    // Note: Internet card is already included in websiteOrder.items array
     for (const line of websiteOrder.items) {
       const productId = await this.findOrCreateProduct({
         menuItemId: line.menuItemId,
@@ -612,6 +652,7 @@ export class OdooClient {
       ]);
     }
 
+    // Calculate total from all items
     const amount_total = websiteOrder.items.reduce(
       (s, l) => s + l.quantity * l.unitPrice,
       0,

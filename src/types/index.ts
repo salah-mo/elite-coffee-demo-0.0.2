@@ -1,4 +1,4 @@
-// Re-export menu types from menuData
+// Menu types sourced from shared definitions
 import type {
   Size as MenuSize,
   Flavor as MenuFlavor,
@@ -7,7 +7,7 @@ import type {
   SubCategory as MenuSubCategory,
   MenuCategory as MenuCategoryType,
   RecommendedItem,
-} from "@/lib/menuData";
+} from "@/types/menu";
 
 export type {
   MenuSize as Size,
