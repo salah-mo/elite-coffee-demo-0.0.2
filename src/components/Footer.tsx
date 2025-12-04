@@ -2,8 +2,17 @@
 
 import { Instagram, Facebook, Globe, MapPin } from "lucide-react";
 import Link from "next/link";
+import type { MenuCategory } from "@/types/menu";
 
-export default function Footer() {
+interface FooterProps {
+  categories?: MenuCategory[];
+}
+
+export default function Footer({ categories = [] }: FooterProps) {
+  // Filter available categories for menu links
+  const menuCategories = categories
+    .filter((cat) => !cat.comingSoon)
+    .slice(0, 5); // Show up to 5 categories in footer
   return (
     <footer
       className="bg-elite-burgundy text-elite-white relative"
@@ -83,42 +92,29 @@ export default function Footer() {
               </p>
             </div>
             <nav className="space-y-4" aria-label="Menu categories">
-              <Link
-                href="/menu/classic-drinks"
-                className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
-              >
-                Classic Drinks
-              </Link>
-              <Link
-                href="/menu/special-drinks"
-                className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
-              >
-                Special Drinks
-              </Link>
-              <Link
-                href="/menu/kids-corner"
-                className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
-              >
-                Kids' Corner
-              </Link>
-              <Link
-                href="/menu/food"
-                className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform relative"
-              >
-                Food & Treats
-                <span className="text-xs bg-elite-cream text-elite-burgundy px-1.5 py-0.5 rounded-full ml-1">
-                  Soon
-                </span>
-              </Link>
-              <Link
-                href="/menu/at-home-coffee"
-                className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform relative"
-              >
-                At Home Coffee
-                <span className="text-xs bg-elite-cream text-elite-burgundy px-1.5 py-0.5 rounded-full ml-1">
-                  Soon
-                </span>
-              </Link>
+              {menuCategories.length > 0 ? (
+                menuCategories.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/menu/${category.id}`}
+                    className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform relative"
+                  >
+                    {category.name}
+                    {category.comingSoon && (
+                      <span className="text-xs bg-elite-cream text-elite-burgundy px-1.5 py-0.5 rounded-full ml-1">
+                        Soon
+                      </span>
+                    )}
+                  </Link>
+                ))
+              ) : (
+                <Link
+                  href="/menu"
+                  className="block font-cabin text-elite-white hover:text-elite-cream transition-all duration-300 text-base font-semibold tracking-wide hover:translate-x-2 transform"
+                >
+                  View All
+                </Link>
+              )}
             </nav>
           </div>
 

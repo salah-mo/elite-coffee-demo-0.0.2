@@ -1,4 +1,5 @@
-import { getAllCategories, type MenuItem } from "@/lib/menuData";
+import { getAllMenuItems } from "@/server/services/menuService";
+import type { MenuItem } from "@/types";
 import type { PreferenceInput } from "@/server/validators/recommendationSchemas";
 
 export interface SuggestionResult {
@@ -10,16 +11,9 @@ export interface SuggestionResult {
   suggestedToppings?: string[];
 }
 
-function flattenMenu(): MenuItem[] {
-  const items: MenuItem[] = [];
-  for (const cat of getAllCategories()) {
-    for (const sub of cat.subCategories) {
-      for (const item of sub.items) {
-        if (item.available) items.push(item);
-      }
-    }
-  }
-  return items;
+async function flattenMenu(): Promise<MenuItem[]> {
+  const items = await getAllMenuItems();
+  return items.filter((item) => item.available);
 }
 
 function contains(str: string, substr: string) {
@@ -98,11 +92,11 @@ function levelDistance<T extends string>(
   return Math.abs(ai - di);
 }
 
-export function suggestDrinks(prefs: PreferenceInput): {
+export async function suggestDrinks(prefs: PreferenceInput): Promise<{
   top: SuggestionResult | null;
   alternatives: SuggestionResult[];
-} {
-  const items = flattenMenu();
+}> {
+  const items = await flattenMenu();
   const results: SuggestionResult[] = [];
 
   for (const item of items) {

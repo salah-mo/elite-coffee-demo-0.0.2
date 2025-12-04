@@ -36,7 +36,10 @@ ODOO_API_KEY=your_api_key   # preferred
 # ODOO_PASSWORD=optional_password_fallback
 ODOO_TIMEOUT_MS=20000       # optional
 ODOO_INSECURE_SSL=true      # dev only; allows self-signed certs
+ODOO_MENU_CACHE_TTL_MS=0    # optional; 0 = always fetch fresh menu data
 ```
+
+If you expect the menu to update frequently, leave `ODOO_MENU_CACHE_TTL_MS` unset or at `0` so every request pulls live data from Odoo. Set it to a positive number (milliseconds) only when you want to cache categories/items temporarily for performance.
 
 Restart the dev server after changing env vars.
 

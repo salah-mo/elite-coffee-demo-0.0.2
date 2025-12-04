@@ -6,18 +6,21 @@ import NearbyCafesSection from "@/components/NearbyCafesSection";
 import FindAndGet from "@/components/FindAndGet";
 import LovedByLocals from "@/components/LovedByLocals";
 import Footer from "@/components/Footer";
+import { getMenuCategories } from "@/server/services/menuService";
 
-export default function Home() {
+export default async function Home() {
+  const categories = await getMenuCategories();
+  
   return (
     <main>
       <Navigation />
       <Hero />
-      <FindAndGet />
-      <LovedByLocals />
+      <FindAndGet categories={categories} />
+      <LovedByLocals categories={categories} />
       <GoodVibesSection />
       <TestimonialsSection />
       <NearbyCafesSection />
-      <Footer />
+      <Footer categories={categories} />
     </main>
   );
 }

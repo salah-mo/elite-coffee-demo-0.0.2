@@ -222,7 +222,7 @@ ELITE/
 │   ├── hooks/
 │   │   └── useCart.ts                ✅ Cart hook
 │   ├── lib/
-│   │   ├── menuData.ts               ✅ Menu data
+│   │   ├── apiCache.ts               ✅ Client cache helpers
 │   │   └── utils.ts                  ✅ Utilities
 │   ├── server/
 │   │   ├── utils/

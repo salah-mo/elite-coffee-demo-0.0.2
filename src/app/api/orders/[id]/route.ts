@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { orderDB } from "@/server/utils/jsonDatabase";
+import { orderStore } from "@/server/services/orderStore";
 import { createOdooClient, isOdooConfigured } from "@/server/utils/odooClient";
 import { updateOrderStatusSchema } from "@/server/validators/orderSchemas";
 import {
@@ -54,7 +54,7 @@ function shouldAdvanceStatus(current: OrderStatus, next: OrderStatus): boolean {
 
 /**
  * GET /api/orders/[id]
- * Get order by ID (JSON database storage)
+ * Get order by ID (in-memory order store)
  */
 export async function GET(
   request: NextRequest,
@@ -65,11 +65,16 @@ export async function GET(
     const userId = request.headers.get("x-user-id") || "demo-user";
     
     // Get user's orders and find the specific one (serverless-compatible)
-    const userOrders = orderDB.getByUserId(userId);
+    const userOrders = orderStore.getByUserId(userId);
     const order = userOrders.find((o) => o.id === id);
 
     if (!order) {
-      return jsonResponse({ success: false, error: "Order not found" }, 404);
+      console.log(`Order ${id} not found for user ${userId}. Available orders:`, userOrders.map(o => o.id));
+      return jsonResponse({ 
+        success: false, 
+        error: "Order not found",
+        message: `Order with ID "${id}" was not found`
+      }, 404);
     }
 
     let latestOrder = order;
@@ -116,8 +121,8 @@ export async function GET(
                 updates.status = mappedStatus;
               }
 
-              const updated = orderDB.update(order.id, updates) || order;
-              const refreshedOrders = orderDB.getByUserId(userId);
+              const updated = orderStore.update(order.id, updates) || order;
+              const refreshedOrders = orderStore.getByUserId(userId);
               latestOrder =
                 refreshedOrders.find((o) => o.id === order.id) || updated;
             }
@@ -145,7 +150,7 @@ export async function PATCH(
     const body = updateOrderStatusSchema.parse(raw);
     const note = body.note?.trim();
 
-    const userOrders = orderDB.getByUserId(userId);
+    const userOrders = orderStore.getByUserId(userId);
     const existing = userOrders.find((o) => o.id === id);
 
     if (!existing) {
@@ -212,8 +217,8 @@ export async function PATCH(
       ...(integrationsClone ? { integrations: integrationsClone } : {}),
     };
 
-    const updated = orderDB.update(existing.id, updates) || existing;
-    const refreshedOrders = orderDB.getByUserId(userId);
+    const updated = orderStore.update(existing.id, updates) || existing;
+    const refreshedOrders = orderStore.getByUserId(userId);
     const finalOrder =
       refreshedOrders.find((o) => o.id === existing.id) || updated;
 

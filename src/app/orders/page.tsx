@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/ToastProvider";
+import { useOrders } from "@/hooks/useOrders";
 import {
   ORDER_STATUS_FLOW,
   FINAL_ORDER_STATUSES,
@@ -34,70 +35,55 @@ function formatDate(input: Date | string): string {
 
 export default function OrdersPage() {
   const { push } = useToast();
-  const [orders, setOrders] = React.useState<Order[]>([]);
-  const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = React.useState<Date | null>(null);
 
-  const fetchOrders = React.useCallback(
-    async (options?: { silent?: boolean; showToast?: boolean }) => {
-      const shouldShowSkeleton = !options?.silent && orders.length === 0;
-      if (shouldShowSkeleton) {
-        setLoading(true);
-        setError(null);
-      } else if (!options?.silent) {
-        setRefreshing(true);
-      }
+  // Use the new caching hook with auto-refresh
+  const {
+    orders: fetchedOrders,
+    loading,
+    error: hookError,
+    refetch,
+  } = useOrders({
+    limit: 50,
+    autoRefresh: true,
+    refreshInterval: REFRESH_MS,
+  });
 
-      try {
-        const res = await fetch("/api/orders?limit=50", {
-          headers: {
-            "x-user-id": "demo-user",
-          },
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to load orders");
-        const json = await res.json();
-        const data = (json.data?.orders as Order[]) || [];
-        const sorted = [...data].sort((a, b) => {
-          const left = new Date(a.createdAt).getTime();
-          const right = new Date(b.createdAt).getTime();
-          return right - left;
-        });
-        setOrders(sorted);
-        setError(null);
-        setLastUpdatedAt(new Date());
-        if (options?.showToast) {
-          push({ type: "success", message: "Orders refreshed" });
-        }
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Unable to load orders";
-        if (!options?.silent) {
-          push({ type: "error", message });
-          setError(message);
-        } else {
-          console.warn(message);
-        }
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [orders.length, push]
-  );
+  // Sort orders by creation date (newest first)
+  const orders = React.useMemo(() => {
+    return [...fetchedOrders].sort((a, b) => {
+      const left = new Date(a.createdAt).getTime();
+      const right = new Date(b.createdAt).getTime();
+      return right - left;
+    });
+  }, [fetchedOrders]);
 
+  const error = hookError;
+
+  // Manual refresh handler
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+      setLastUpdatedAt(new Date());
+      push({ type: "success", message: "Orders refreshed" });
+    } catch (err) {
+      push({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to refresh orders",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch, push]);
+
+  // Update last updated time when orders change
   React.useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
-  React.useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      fetchOrders({ silent: true });
-    }, REFRESH_MS);
-    return () => window.clearInterval(intervalId);
-  }, [fetchOrders]);
+    if (orders.length > 0 && !loading) {
+      setLastUpdatedAt(new Date());
+    }
+  }, [orders, loading]);
 
   const activeOrders = React.useMemo(
     () => orders.filter((order) => !FINAL_ORDER_STATUSES.has(order.status)),
@@ -121,15 +107,15 @@ export default function OrdersPage() {
               </div>
               <button
                 className="inline-flex items-center gap-2 rounded-full border border-elite-cream/40 px-4 py-2 font-cabin text-sm text-elite-cream transition-all hover:bg-elite-cream hover:text-elite-burgundy disabled:opacity-60"
-                onClick={() => fetchOrders({ showToast: true })}
-                disabled={refreshing}
-                aria-busy={refreshing}
+                onClick={handleRefresh}
+                disabled={refreshing || loading}
+                aria-busy={refreshing || loading}
               >
                 <RefreshCw
-                  className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+                  className={`w-4 h-4 ${refreshing || loading ? "animate-spin" : ""}`}
                   aria-hidden="true"
                 />
-                {refreshing ? "Refreshing" : "Refresh"}
+                {refreshing || loading ? "Refreshing" : "Refresh"}
               </button>
             </div>
             <div
@@ -217,12 +203,12 @@ export default function OrdersPage() {
                         </div>
                         <button
                           className="inline-flex items-center gap-2 rounded-full border border-elite-burgundy/20 px-3 py-1 text-xs font-cabin text-elite-burgundy transition-all hover:bg-elite-burgundy hover:text-elite-cream"
-                          onClick={() => fetchOrders({ showToast: true })}
-                          disabled={refreshing}
+                          onClick={handleRefresh}
+                          disabled={refreshing || loading}
                         >
                           <RefreshCw
                             className={`h-3.5 w-3.5 ${
-                              refreshing ? "animate-spin" : ""
+                              refreshing || loading ? "animate-spin" : ""
                             }`}
                             aria-hidden="true"
                           />

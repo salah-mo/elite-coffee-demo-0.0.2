@@ -6,10 +6,13 @@ The menu system follows a clean MVC (Model-View-Controller) architecture with sc
 
 ## Architecture
 
+> **Update:** Menu data now comes directly from Odoo through `src/server/services/menuService.ts`. The legacy `src/lib/menuData.ts` JSON dataset has been removed.
+
 ### Data Layer (Model)
-- **File**: `src/lib/menuData.ts`
-- **Purpose**: Contains all menu data structures, interfaces, and helper functions
-- **Future**: Will be replaced with API calls to the backend ordering system
+- **File**: `src/server/services/menuService.ts`
+- **Purpose**: Fetches and caches menu categories/items from Odoo using the JSON-RPC client
+- **Supporting Types**: `src/types/menu.ts` centralizes menu interfaces (categories, items, recommendations)
+- **Caching**: Results are cached in-memory for 5 minutes to reduce Odoo traffic
 
 ### Components (View)
 - **Main Menu Page**: `src/app/menu/page.tsx`

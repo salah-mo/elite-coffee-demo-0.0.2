@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Coffee, Home, Menu, MapPin } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { getMenuCategories } from "@/server/services/menuService";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const categories = await getMenuCategories();
+  const availableCategories = categories.filter((cat) => !cat.comingSoon).slice(0, 4);
   return (
     <main>
       <Navigation />
@@ -56,34 +59,26 @@ export default function NotFound() {
               Popular Pages
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Link
-                href="/menu/classic-drinks"
-                className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group"
-              >
-                <Coffee className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-cabin font-semibold">Classic Drinks</span>
-              </Link>
-              <Link
-                href="/menu/special-drinks"
-                className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group"
-              >
-                <Coffee className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-cabin font-semibold">Special Drinks</span>
-              </Link>
-              <Link
-                href="/menu/kids-corner"
-                className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group"
-              >
-                <Coffee className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-cabin font-semibold">Kids' Corner</span>
-              </Link>
-              <Link
-                href="/shop"
-                className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group"
-              >
-                <Coffee className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-cabin font-semibold">Shop</span>
-              </Link>
+              {availableCategories.length > 0 ? (
+                availableCategories.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/menu/${category.id}`}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group"
+                  >
+                    <Coffee className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="font-cabin font-semibold">{category.name}</span>
+                  </Link>
+                ))
+              ) : (
+                <Link
+                  href="/menu"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-elite-cream hover:bg-elite-burgundy hover:text-elite-cream transition-all duration-300 group col-span-2"
+                >
+                  <Menu className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-cabin font-semibold">Browse All Menu</span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -101,7 +96,7 @@ export default function NotFound() {
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer categories={categories} />
     </main>
   );
 }

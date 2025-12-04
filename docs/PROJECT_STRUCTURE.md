@@ -1,13 +1,14 @@
 # Elite Coffee Shop - Project Architecture
 
-This document describes the complete codebase layout and backend architecture of Elite Coffee Shop. The project uses Next.js 15 with App Router, TypeScript, Tailwind CSS, and a JSON file-based database with optional Odoo ERP/POS integration.
+This document describes the complete codebase layout and backend architecture of Elite Coffee Shop. The project uses Next.js 15 with App Router, TypeScript, Tailwind CSS, and an Odoo-backed menu with in-memory cart/order storage plus optional ERP/POS integration.
 
 ## 🏗️ Repository Tree (key parts)
 
+# 🏗️ Project Structure Overview
+
+> **Update:** Menu data now loads directly from Odoo via `menuService.ts`, while carts and orders are stored in-memory through `cartStore.ts` and `orderStore.ts`. There is no longer a JSON file database in the repository.
 ```
 ELITE/
-├── data/
-│   └── database.json            # Persistent JSON database (carts, orders)
 ├── public/
 │   └── images/                  # Static assets
 ├── src/
@@ -39,15 +40,19 @@ ELITE/
 │   ├── hooks/
 │   │   └── useCart.ts           # Client cart helper
 │   ├── lib/
-│   │   └── menuData.ts          # Menu data source
+│   │   ├── apiCache.ts          # Client-side caching helpers
+│   │   └── componentUtils.ts    # Client UI utilities (menu data now loaded server-side)
 │   ├── server/
 │   │   ├── middleware/
 │   │   │   └── auth.ts          # Placeholder auth middleware
-│   │   ├── utils/
-│   │   │   ├── apiHelpers.ts    # jsonResponse/error helpers
-│   │   │   ├── errors.ts        # HTTP error classes
-│   │   │   ├── jsonDatabase.ts  # JSON DB read/write helpers
-│   │   │   └── odooClient.ts    # Odoo JSON-RPC client
+│   │   ├── services/
+│   │   │   ├── cartStore.ts     # In-memory cart storage
+│   │   │   ├── menuService.ts   # Live Odoo menu loader
+│   │   │   └── orderStore.ts    # In-memory order storage
+│   │   └── utils/
+│   │       ├── apiHelpers.ts    # jsonResponse/error helpers
+│   │       ├── errors.ts        # HTTP error classes
+│   │       └── odooClient.ts    # Odoo JSON-RPC client
 │   │   └── validators/
 │   │       ├── cartSchemas.ts
 │   │       └── orderSchemas.ts
@@ -60,11 +65,11 @@ ELITE/
 ```
 
 **Key Points:**
-- **No SQL Database Required:** All data persists in `data/database.json`
-- **JSON Database Helpers:** Located in `src/server/utils/jsonDatabase.ts`
-- **API Validation:** Zod schemas in `src/server/validators/`
-- **Type Safety:** Full TypeScript coverage with strict mode
-- **Optional Odoo:** JSON-RPC client for ERP integration
+- **Odoo as Source of Truth:** `menuService.ts` fetches categories/items directly from Odoo.
+- **In-Memory State:** `cartStore.ts` and `orderStore.ts` keep cart/order data during the process lifetime.
+- **API Validation:** Zod schemas in `src/server/validators/` enforce request payloads.
+- **Type Safety:** Full TypeScript coverage with strict mode.
+- **Optional Odoo ERP/POS:** JSON-RPC client powers extended integrations.
 
 ## 🔧 Runtime and Scripts
 
@@ -76,7 +81,6 @@ npm run build     # Production build
 npm run start     # Start production server
 npm run lint      # TypeScript checking + ESLint
 npm run format    # Format code with Biome
-npm run db:reset  # Reset JSON database to empty state
 ```
 
 ## 📦 Key Dependencies
@@ -104,58 +108,15 @@ npm run db:reset  # Reset JSON database to empty state
 
 ## 💾 Data Storage
 
-**File:** `data/database.json`
+**In-Memory Stores:**
+- `cartStore.ts`: Map-based cart storage keyed by `userId`. Provides helpers to clone data and avoid accidental mutation.
+- `orderStore.ts`: Keeps orders grouped by `userId`, cloning nested structures on read/write to maintain immutability guarantees.
 
-**Access:** Via `src/server/utils/jsonDatabase.ts` providing:
-- `cartDB.get(userId)` - Get user's cart
-- `cartDB.set(userId, cart)` - Update user's cart
-- `cartDB.delete(userId)` - Clear user's cart
-- `orderDB.getAll(userId?)` - Get all orders (optionally filtered by user)
-- `orderDB.getById(orderId)` - Get specific order
-- `orderDB.create(order)` - Create new order
+Both stores live only for the lifetime of the Node.js process. Restarting the server resets carts and orders unless you plug in another persistence layer.
 
-**Structure:**
-```json
-{
-  "carts": {
-    "user-id": {
-      "userId": "user-id",
-      "items": [
-        {
-          "id": "uuid",
-          "menuItemId": "americano",
-          "quantity": 2,
-          "size": "Large",
-          "flavor": "Vanilla",
-          "toppings": ["Whipped Cream"],
-          "price": 12.99,
-          "menuItem": { /* full menu item data */ }
-        }
-      ]
-    }
-  },
-  "orders": [
-    {
-      "id": "uuid",
-      "userId": "user-id",
-      "items": [...],
-      "total": 45.99,
-      "status": "PENDING",
-      "paymentMethod": "CASH",
-      "paymentStatus": "PENDING",
-      "createdAt": "2024-12-01T...",
-      "notes": "Extra hot"
-    }
-  ]
-}
-```
-
-**Features:**
-- Thread-safe read/write operations
-- Atomic file updates (prevents data corruption)
-- Automatic backup on write errors
-- Persists across server restarts
-- Reset with `npm run db:reset`
+**Odoo Menu Loader:**
+- `menuService.ts` contacts Odoo via `odooClient.ts`, builds category/subcategory hierarchies, and caches the result for `ODOO_MENU_CACHE_TTL_MS` milliseconds (default `0`, meaning no cache).
+- Helper functions (`getMenuCategories`, `getItemById`, `getRecommendedItems`, etc.) provide a consistent interface for route handlers and components.
 
 ## 🚀 API Endpoints
 
@@ -215,9 +176,10 @@ ODOO_API_KEY=your_api_key          # Preferred over password
 # Optional Settings
 ODOO_TIMEOUT_MS=20000               # Request timeout (default: 20000)
 ODOO_INSECURE_SSL=true              # Dev only - allows self-signed certs
+ODOO_MENU_CACHE_TTL_MS=0            # Menu cache lifetime (0 = always fetch fresh data)
 ```
 
-**No `DATABASE_URL` required** - the app uses JSON file storage.
+**No `DATABASE_URL` required** - carts/orders remain in-memory until you wire up your own persistence.
 
 ### User Identification
 - API routes use `x-user-id` header for user context
@@ -227,21 +189,21 @@ ODOO_INSECURE_SSL=true              # Dev only - allows self-signed certs
 ## 🧗 Future Work & Migration Path
 
 ### Database Migration (When Needed)
-**Current:** JSON file storage (`data/database.json`)
+**Current:** In-memory stores (`cartStore.ts`, `orderStore.ts`)
 
 **Migration to SQL:**
 1. Choose ORM: Prisma, Drizzle, TypeORM, or Kysely
 2. Define schema matching current TypeScript types
 3. Install dependencies and generate client
-4. Replace `cartDB` and `orderDB` calls with ORM queries
-5. Migrate existing data from JSON to SQL
+4. Replace `cartStore` and `orderStore` calls with ORM queries
+5. Add your persistence/migration layer as needed
 6. Update API routes (minimal changes needed)
 
 **Example Migration:**
 ```typescript
-// Before (JSON)
-import { cartDB } from '@/server/utils/jsonDatabase';
-const cart = cartDB.get(userId);
+// Before (in-memory)
+import { cartStore } from '@/server/services/cartStore';
+const cart = cartStore.get(userId);
 
 // After (Prisma)
 import { prisma } from '@/server/db';
@@ -283,12 +245,12 @@ const cart = await prisma.cart.findUnique({
 Elite Coffee Shop is a production-ready Next.js application with:
 
 \u2705 **Complete Backend:** RESTful API with 10+ endpoints  
-\u2705 **JSON Database:** Persistent file-based storage  
+ \u2705 **In-Memory State:** Lightweight cart/order stores ready to swap for a database  
 \u2705 **Type Safety:** Full TypeScript with Zod validation  
 \u2705 **Scalable Architecture:** Easy migration to SQL when needed  
 \u2705 **Optional Integrations:** Odoo ERP/POS support  
 \u2705 **Modern Stack:** Next.js 15, React 18, Tailwind CSS  
 \u2705 **Developer Experience:** Fast builds with Turbopack, Biome formatting  
 
-**Last Updated:** December 1, 2025  
+**Last Updated:** December 4, 2025  
 **Maintainers:** Development Team

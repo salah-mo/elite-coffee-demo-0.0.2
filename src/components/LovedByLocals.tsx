@@ -3,38 +3,76 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
+import type { MenuCategory } from "@/types/menu";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
-export default function LovedByLocals() {
+interface LovedByLocalsProps {
+  categories: MenuCategory[];
+}
+
+export default function LovedByLocals({ categories }: LovedByLocalsProps) {
   const productRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const products = [
-    {
-      name: "Cappuccino",
-      image: "https://ext.same-assets.com/1022434225/2347648118.avif",
-      link: "/menu/classic-drinks",
-    },
-    {
-      name: "Bubble Tea",
-      image: "https://ext.same-assets.com/1022434225/4278114908.avif",
-      link: "/menu/special-drinks",
-    },
-    {
-      name: "Iced Tea",
-      image: "https://ext.same-assets.com/1022434225/703059297.avif",
-      link: "/menu/special-drinks",
-    },
-    {
-      name: "Iced Latte",
-      image: "https://ext.same-assets.com/1022434225/1157300862.avif",
-      link: "/menu/special-drinks",
-    },
-  ];
+  // Get featured items from categories
+  const getFeaturedItems = () => {
+    const featured: Array<{
+      name: string;
+      image: string;
+      link: string;
+    }> = [];
+
+    for (const category of categories) {
+      if (category.comingSoon) continue;
+      
+      for (const sub of category.subCategories) {
+        for (const item of sub.items) {
+          if (item.featured && item.available && featured.length < 4) {
+            featured.push({
+              name: item.name,
+              image: item.images[0] || "/images/menu/drinks/american.png",
+              link: `/menu/${category.id}/${sub.id}/${item.id}`,
+            });
+          }
+        }
+        if (featured.length >= 4) break;
+      }
+      if (featured.length >= 4) break;
+    }
+
+    // Fallback to first 4 available items if not enough featured
+    if (featured.length < 4) {
+      for (const category of categories) {
+        if (category.comingSoon) continue;
+        
+        for (const sub of category.subCategories) {
+          for (const item of sub.items) {
+            if (item.available && !featured.some(f => f.link.includes(item.id))) {
+              featured.push({
+                name: item.name,
+                image: item.images[0] || "/images/menu/drinks/american.png",
+                link: `/menu/${category.id}/${sub.id}/${item.id}`,
+              });
+              if (featured.length >= 4) break;
+            }
+          }
+          if (featured.length >= 4) break;
+        }
+        if (featured.length >= 4) break;
+      }
+    }
+
+    return featured;
+  };
+
+  const products = getFeaturedItems();
 
   useEffect(() => {
+    if (products.length === 0) return;
+
     // Set initial state - scale down to 0
     gsap.set([...productRefs.current, buttonRef.current], {
       scale: 0,
@@ -70,7 +108,11 @@ export default function LovedByLocals() {
         },
         "-=0.4",
       );
-  }, []);
+  }, [products.length]);
+
+  if (products.length === 0) {
+    return null;
+  }
 
   return (
     <section className="bg-elite-cream py-20 px-6">
@@ -88,7 +130,7 @@ export default function LovedByLocals() {
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {products.map((product, index) => (
-            <a
+            <Link
               key={index}
               href={product.link}
               className="group cursor-pointer flex flex-col items-center"
@@ -110,17 +152,19 @@ export default function LovedByLocals() {
                   {product.name}
                 </h3>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
 
         {/* Explore Menu Button */}
-        <button
-          ref={buttonRef}
-          className="bg-elite-burgundy text-elite-white px-6 py-3 rounded-full font-cabin text-base font-semibold hover:opacity-90 transition-opacity"
-        >
-          Explore Menu
-        </button>
+        <Link href="/menu">
+          <button
+            ref={buttonRef}
+            className="bg-elite-burgundy text-elite-white px-6 py-3 rounded-full font-cabin text-base font-semibold hover:opacity-90 transition-opacity"
+          >
+            Explore Menu
+          </button>
+        </Link>
       </div>
     </section>
   );

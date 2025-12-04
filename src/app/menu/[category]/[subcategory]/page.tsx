@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { getCategoryById, getSubCategoryById } from "@/lib/menuData";
+import {
+  getCategoryById,
+  getSubCategoryById,
+  getMenuCategories,
+} from "@/server/services/menuService";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,8 +15,9 @@ import {
 import { notFound } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { getAllCategories } from "@/lib/menuData";
 import DrinkCard from "@/components/DrinkCard";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Generate static params for all menu subcategories
@@ -20,21 +25,25 @@ import DrinkCard from "@/components/DrinkCard";
  * Following Next.js best practices for static exports
  */
 export async function generateStaticParams() {
-  const categories = getAllCategories();
-  const params = [];
-
-  // Generate params for all category-subcategory combinations
-  // This ensures all subcategory pages are generated at build time
-  for (const category of categories) {
-    for (const subCategory of category.subCategories) {
-      params.push({
-        category: category.id,
-        subcategory: subCategory.id,
-      });
+  try {
+    const categories = await getMenuCategories();
+    const params: Array<{ category: string; subcategory: string }> = [];
+    for (const category of categories) {
+      for (const subCategory of category.subCategories) {
+        params.push({
+          category: category.id,
+          subcategory: subCategory.id,
+        });
+      }
     }
+    return params;
+  } catch (error) {
+    console.warn(
+      "Failed to generate static params for menu subcategories:",
+      error,
+    );
+    return [];
   }
-
-  return params;
 }
 
 export default async function SubCategoryPage({
@@ -44,9 +53,9 @@ export default async function SubCategoryPage({
 }) {
   const { category: categoryId, subcategory: subCategoryId } = await params;
 
-  const category = getCategoryById(categoryId);
-  const subCategory = getSubCategoryById(categoryId, subCategoryId);
-  const allCategories = getAllCategories();
+  const category = await getCategoryById(categoryId);
+  const subCategory = await getSubCategoryById(categoryId, subCategoryId);
+  const allCategories = await getMenuCategories();
 
   if (!category || !subCategory) {
     notFound();
@@ -279,7 +288,7 @@ export default async function SubCategoryPage({
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer categories={allCategories} />
     </main>
   );
 }
